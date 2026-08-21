@@ -1,5 +1,9 @@
 # 🚑 Accident Care Unit — Backend Architecture & Complete Guide
 
+> **Historical document:** this guide describes the original local-database and
+> heuristic prototype. The current application uses Supabase and contract-driven
+> model artifacts. Use `README.md` and `MODEL_INTEGRATION.md` for current setup.
+
 A comprehensive architectural and technical explanation of the **FastAPI** backend for the **Accident Care** dashboard.
 
 ---

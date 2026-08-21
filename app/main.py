@@ -1,16 +1,18 @@
 """
 FastAPI application entry point.
-Registers CORS middleware, mounts all routers under /api prefix, and
-initialises the database with seed data on startup.
+Registers CORS middleware, mounts all routers under /api prefix.
+Connects to Supabase — no local database initialization needed.
 """
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from supabase import Client
 
-from app.core.config import get_settings
-from app.db.init_db import init_db
 from app.api import auth, nurse, doctor, admin, government
+from app.core.config import get_settings
+from app.db.session import get_supabase
+from app.services import ml_service, schema_service
 
 settings = get_settings()
 
@@ -19,8 +21,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run DB init on startup."""
-    init_db()
+    """Startup/shutdown lifecycle — Supabase manages the DB, so nothing to init."""
     yield
     # shutdown logic goes here if needed
 
@@ -30,10 +31,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Accident Care Unit — Predictive Dashboard API",
     description=(
-        "Production-ready REST backend for the Accident Care hospital dashboard. "
-        "Supports JWT auth, RBAC across 4 roles, ML-based patient triage, and audit logging."
+        "REST backend for the Accident Care hospital dashboard. "
+        "Powered by Supabase. Supports JWT auth, RBAC across 4 roles, "
+        "ML-based patient triage, and audit logging."
     ),
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -62,4 +64,16 @@ app.include_router(government.router, prefix=API_PREFIX)
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {"status": "ok", "service": "Accident Care API"}
+    return {"status": "ok", "service": "Accident Care API", "database": "Supabase"}
+
+
+@app.get("/health/models", tags=["Health"])
+def model_health_check():
+    """Show which optional model artifacts are currently installed."""
+    return ml_service.get_model_status()
+
+
+@app.get("/health/database-schema", tags=["Health"])
+def database_schema_health_check(supabase: Client = Depends(get_supabase)):
+    """Report whether the live Supabase schema supports every integrated form."""
+    return schema_service.get_model_integration_schema_status(supabase)

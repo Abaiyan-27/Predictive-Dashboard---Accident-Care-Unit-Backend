@@ -1,10 +1,21 @@
 """Hospital Pydantic schemas."""
+from typing import Optional
 from pydantic import BaseModel
+from uuid import UUID
 
 
-class HospitalStatus(BaseModel):
-    model_config = {"from_attributes": True}
+class HospitalOut(BaseModel):
+    hospital_id: UUID
+    name: str
+    type: Optional[str] = None
+    region: Optional[str] = None
+    district: Optional[str] = None
+    address: Optional[str] = None
 
-    total_beds: int
-    occupied_beds: int
-    available_beds: int
+
+class CreateHospitalPayload(BaseModel):
+    name: str
+    type: Optional[str] = None
+    region: Optional[str] = None
+    district: Optional[str] = None
+    address: Optional[str] = None

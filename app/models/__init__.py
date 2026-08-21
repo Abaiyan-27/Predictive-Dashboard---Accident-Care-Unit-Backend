@@ -1,1 +1,1 @@
-# models package
+# models package — Pydantic models mirroring Supabase tables

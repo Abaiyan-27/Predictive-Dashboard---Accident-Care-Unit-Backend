@@ -1,30 +1,19 @@
-"""SQLAlchemy engine + session factory + FastAPI dependency."""
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from typing import Generator
+"""Supabase client singleton + FastAPI dependency."""
+from supabase import create_client, Client
 
 from app.core.config import get_settings
 
 settings = get_settings()
 
-# SQLite gets check_same_thread=False; for Postgres this kwarg is ignored
-connect_args = (
-    {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-)
-
-engine = create_engine(
-    settings.database_url,
-    connect_args=connect_args,
-    echo=False,  # flip to True for SQL debug logs
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Supabase client (uses service role key for full DB access)
+supabase: Client = create_client(settings.supabase_url, settings.supabase_key)
 
 
-def get_db() -> Generator[Session, None, None]:
-    """FastAPI dependency that provides a database session per request."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_supabase() -> Client:
+    """Provide the service-role client used for database and admin operations."""
+    return supabase
+
+
+def get_auth_supabase() -> Client:
+    """Provide an isolated client because password sign-in mutates client session state."""
+    return create_client(settings.supabase_url, settings.supabase_key)

@@ -1,7 +1,7 @@
 """
 Shared FastAPI dependencies
 ===========================
-- get_current_user  — extracts + validates JWT, returns User ORM object
+- get_current_user  — extracts + validates JWT, returns user dict
 - RoleChecker       — callable dependency that enforces allowed roles
 """
 from __future__ import annotations
@@ -11,25 +11,30 @@ from typing import Callable
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
-from sqlalchemy.orm import Session
+from supabase import Client
 
 from app.core.security import decode_token
-from app.db.session import get_db
-from app.models.user import User
+from app.db.session import get_supabase
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-) -> User:
-    """Validate JWT and return the authenticated User ORM object."""
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    supabase: Client = Depends(get_supabase),
+) -> dict:
+    """Validate JWT and return the authenticated user as a dict."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token.",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
         payload = decode_token(credentials.credentials)
         user_id: str | None = payload.get("sub")
@@ -38,10 +43,22 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.get(User, user_id)
-    if user is None:
-        raise credentials_exception
-    return user
+    # Try to find user in User table first
+    result = supabase.table("User").select("*").eq("user_id", user_id).execute()
+    if result.data:
+        user = result.data[0]
+        user["_type"] = "user"
+        return user
+
+    # Try Government_Officer table
+    result = supabase.table("Government_Officer").select("*").eq("officer_id", user_id).execute()
+    if result.data:
+        officer = result.data[0]
+        officer["_type"] = "government_officer"
+        officer["role"] = "government"
+        return officer
+
+    raise credentials_exception
 
 
 class RoleChecker:
@@ -50,8 +67,9 @@ class RoleChecker:
     def __init__(self, allowed_roles: list[str]) -> None:
         self.allowed_roles = allowed_roles
 
-    def __call__(self, current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role not in self.allowed_roles:
+    def __call__(self, current_user: dict = Depends(get_current_user)) -> dict:
+        user_role = current_user.get("role", "")
+        if user_role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Access denied. Required roles: {self.allowed_roles}",

@@ -10,13 +10,14 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # JWT
-    secret_key: str = "accident-care-super-secret-jwt-key-change-in-production-2024"
+    # JWT (Supabase JWT secret for validating tokens)
+    secret_key: str = "your-supabase-jwt-secret"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480  # 8-hour hospital shift
 
-    # Database
-    database_url: str = "sqlite:///./accident_care.db"
+    # Supabase
+    supabase_url: str = "https://your-project.supabase.co"
+    supabase_key: str = "your-supabase-service-role-key"
 
     # CORS
     cors_origins: str = "http://localhost:5173,http://localhost:3000"

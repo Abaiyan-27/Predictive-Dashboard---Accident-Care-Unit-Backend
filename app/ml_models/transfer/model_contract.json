@@ -1,0 +1,13 @@
+{
+  "name": "transfer_probability",
+  "version": "transfer-notebook-2026-08",
+  "artifact": "transfer_model_notebook.joblib",
+  "metadata_artifact": "transfer_metadata_notebook.joblib",
+  "format": "joblib",
+  "positive_class": "yes",
+  "label_map": {
+    "no": "No transfer",
+    "yes": "Transfer"
+  },
+  "confidence_floor": 0.5
+}

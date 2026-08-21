@@ -1,0 +1,132 @@
+{
+  "purpose": "Post-treatment prediction of transfer likelihood, intended for doctor use.",
+  "split": {
+    "train": 3706,
+    "validation": 1236,
+    "holdout": 1236,
+    "protocol": "all decisions on train/validation; holdout read once"
+  },
+  "target": {
+    "classes": [
+      "no",
+      "yes"
+    ],
+    "prevalence": {
+      "no": 0.8843,
+      "yes": 0.1157
+    }
+  },
+  "eligibility_audit": {
+    "BOOKKEEPING": 65,
+    "POST_ARRIVAL_ELIGIBLE": 37,
+    "EXCLUDED_ETHICAL": 16,
+    "TARGET_ADJACENT": 7,
+    "ADMIN": 4,
+    "TARGET_INPUT": 1
+  },
+  "features": {
+    "candidates": 21,
+    "final": [
+      "Age",
+      "Mode of Transport to the Hospital",
+      "Time Taken To Reach Hospital",
+      "Vehicle Type",
+      "Helmet Worn",
+      "Collision With",
+      "Approximate Speed",
+      "Road Type",
+      "Road Condition",
+      "Visiblity",
+      "Road Signals Exist",
+      "Collision Force From",
+      "Alcohol Consumption",
+      "Illicit Drugs",
+      "Site of Injury No1",
+      "Type of injury No 1",
+      "Site of injury No 2",
+      "Type of Injury No 2",
+      "Investigation Done",
+      "Management Name 1",
+      "Management Name 2"
+    ],
+    "dropped": []
+  },
+  "model_comparison": [
+    {
+      "model": "Logistic Regression",
+      "recall_transfer": 0.6923076923076923,
+      "roc_auc": 0.7641571603145254,
+      "avg_precision": 0.28057851723630733,
+      "f1_macro": 0.5685157911962035
+    },
+    {
+      "model": "CatBoost",
+      "recall_transfer": 0.6223776223776224,
+      "roc_auc": 0.7890581513637325,
+      "avg_precision": 0.2950117908587903,
+      "f1_macro": 0.6062530157363066
+    },
+    {
+      "model": "LightGBM",
+      "recall_transfer": 0.46853146853146854,
+      "roc_auc": 0.7905040979148938,
+      "avg_precision": 0.35406305712990854,
+      "f1_macro": 0.6495857344966789
+    },
+    {
+      "model": "HistGradientBoosting",
+      "recall_transfer": 0.45454545454545453,
+      "roc_auc": 0.784086910344916,
+      "avg_precision": 0.3149171010673672,
+      "f1_macro": 0.6485868708478775
+    },
+    {
+      "model": "XGBoost",
+      "recall_transfer": 0.17482517482517482,
+      "roc_auc": 0.7653471871221185,
+      "avg_precision": 0.31880902315326737,
+      "f1_macro": 0.5911328430502705
+    },
+    {
+      "model": "Dummy (stratified)",
+      "recall_transfer": 0.1048951048951049,
+      "roc_auc": 0.4879461800779276,
+      "avg_precision": 0.11364593832853728,
+      "f1_macro": 0.4882712277618138
+    },
+    {
+      "model": "Random Forest",
+      "recall_transfer": 0.04895104895104895,
+      "roc_auc": 0.7935431448697688,
+      "avg_precision": 0.29909133531049736,
+      "f1_macro": 0.5126805830865738
+    }
+  ],
+  "model": {
+    "family": "Logistic Regression",
+    "best_params": {
+      "C": "0.01"
+    },
+    "miss_cost_ratio": 4,
+    "chosen_threshold": 0.6200000000000001,
+    "no_transfer_recall_floor": 0.45
+  },
+  "holdout_metrics": {
+    "roc_auc": 0.7991,
+    "avg_precision": 0.3257,
+    "recall_transfer": 0.5524,
+    "recall_no_transfer": 0.8271,
+    "precision_transfer": 0.2948
+  },
+  "completeness_floor": 0.619,
+  "top_features": [
+    "Collision Force From",
+    "Illicit Drugs",
+    "Alcohol Consumption",
+    "Road Signals Exist",
+    "Type of injury No 1",
+    "Time Taken To Reach Hospital",
+    "Site of Injury No1",
+    "Road Type"
+  ]
+}

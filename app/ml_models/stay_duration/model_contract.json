@@ -1,0 +1,8 @@
+{
+  "name": "stay_duration",
+  "version": "stay-notebook-2026-08",
+  "artifact": "stay_duration_model_notebook.joblib",
+  "metadata_artifact": "stay_duration_metadata_notebook.joblib",
+  "format": "joblib",
+  "confidence_floor": 0.5
+}

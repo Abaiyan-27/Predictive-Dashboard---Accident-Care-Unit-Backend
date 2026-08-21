@@ -1,0 +1,76 @@
+{
+  "final_model": "CatBoost",
+  "original_8_features": [
+    "Age",
+    "Gender",
+    "Mode of Transport to the Hospital",
+    "Time Taken To Reach Hospital",
+    "Vehicle Type",
+    "Helmet Worn",
+    "Collision With",
+    "Site of Injury No1"
+  ],
+  "features_dropped_after_validation": [
+    "Gender",
+    "Vehicle Type",
+    "Helmet Worn"
+  ],
+  "final_features_used": [
+    "Age",
+    "Mode of Transport to the Hospital",
+    "Time Taken To Reach Hospital",
+    "Collision With",
+    "Site of Injury No1"
+  ],
+  "feature_validation_stats": {
+    "Gender": {
+      "chi2": 8.438044751979952,
+      "p": 0.0036745111971592174,
+      "cramers_v": 0.04136274744148826
+    },
+    "Mode of Transport to the Hospital": {
+      "chi2": 42.051004092063806,
+      "p": 3.913371241763334e-09,
+      "cramers_v": 0.1207509502552235
+    },
+    "Vehicle Type": {
+      "chi2": 1.1007716937448,
+      "p": 0.294096812158492,
+      "cramers_v": 0.017557137141809252
+    },
+    "Helmet Worn": {
+      "chi2": 0.0018907761169631957,
+      "p": 0.9653164714898093,
+      "cramers_v": 0.0008095564647743563
+    },
+    "Collision With": {
+      "chi2": 30.49759883385146,
+      "p": 0.0023487258660414207,
+      "cramers_v": 0.09052001959697963
+    },
+    "Site of Injury No1": {
+      "chi2": 313.5221426389522,
+      "p": 3.1404417326853803e-43,
+      "cramers_v": 0.26374870152226737
+    }
+  },
+  "moderate_recall_floor_used_for_selection": 0.5,
+  "chosen_decision_threshold": 0.45000000000000007,
+  "cv_at_chosen_threshold": {
+    "recall_severe": 0.7185429638854297,
+    "precision_severe": 0.30569576346977134,
+    "recall_moderate": 0.5328641310453055
+  },
+  "held_out_test_recall_severe": 0.6909090909090909,
+  "held_out_test_precision_severe": 0.30844155844155846,
+  "held_out_test_recall_moderate": 0.5553235908141962,
+  "notes": [
+    "Age and Time Taken To Reach Hospital are bucketed range strings, encoded ordinally, not treated as free numerics.",
+    "Dropped ['Gender', 'Vehicle Type', 'Helmet Worn'] after train-only chi-square/Cramer's V validation showed p>0.05 or Cramer's V<0.05.",
+    "Rare categories in Collision With / Site of Injury No1 (< 20 training rows) consolidated into 'Other', fit on train only.",
+    "Class imbalance (78% Moderate / 22% Severe) handled via class_weight='balanced', checked against SMOTE - no improvement, so class weighting kept.",
+    "CatBoost's categorical NaNs are cast to the string 'missing' due to a library-level type requirement - a representation fix, not imputation.",
+    "Model AND threshold chosen together (Section 8) via a joint sweep across all tuned candidates, constrained to recall(Moderate) >= 0.5 - picking the threshold-winner for only the model chosen at the default threshold (the original approach) produced a degenerate near-all-Severe model on this data and was replaced.",
+    "Confidence-layer simplified to a 2-tier design (40% completeness floor, 0.60 model-probability floor for a low-confidence flag) to match the agreed specification exactly."
+  ]
+}

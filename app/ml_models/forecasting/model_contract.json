@@ -1,0 +1,6 @@
+{
+  "name": "accident_forecast",
+  "version": "forecast-2026-01",
+  "artifact": "accident_forecast_seasonal_naive.json",
+  "format": "seasonal_naive_json"
+}

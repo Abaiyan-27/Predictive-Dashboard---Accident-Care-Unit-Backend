@@ -1,0 +1,12 @@
+{
+  "name": "discharge_outcome",
+  "version": "discharge-notebook-2026-08",
+  "artifact": "discharge_outcome_model_notebook.joblib",
+  "metadata_artifact": "discharge_outcome_metadata_notebook.joblib",
+  "format": "joblib",
+  "label_map": {
+    "complete recovery": "Complete recovery",
+    "partial recovery": "Partial recovery",
+    "further interventions": "Further interventions"
+  }
+}

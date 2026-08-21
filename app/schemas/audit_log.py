@@ -1,13 +1,15 @@
 """Audit log Pydantic schemas."""
-from typing import Literal
+from typing import Optional
 from pydantic import BaseModel
+from uuid import UUID
+from datetime import datetime
 
 
 class AuditLogOut(BaseModel):
-    model_config = {"from_attributes": True}
-
-    id: str
-    user: str
-    role: Literal["nurse", "doctor", "admin", "government"]
-    action: str
-    timestamp: str
+    log_id: UUID
+    actor_id: UUID
+    role: str
+    hospital_id: Optional[UUID] = None
+    action_type: str
+    accident_id: Optional[UUID] = None
+    timestamp: Optional[datetime] = None

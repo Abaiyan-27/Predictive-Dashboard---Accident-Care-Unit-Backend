@@ -1,19 +1,21 @@
-"""Transfer request ORM model."""
-import uuid
-from sqlalchemy import String, Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column
-
-from app.db.base import Base
-
-TransferStatusEnum = SAEnum("pending", "approved", "rejected", name="transfer_status_enum")
+"""Transfer Pydantic model — mirrors Supabase public.Transfer table."""
+from pydantic import BaseModel
+from typing import Optional
+from uuid import UUID
+from datetime import datetime
 
 
-class Transfer(Base):
-    __tablename__ = "transfers"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    patient_name: Mapped[str] = mapped_column(String, nullable=False)
-    source_hospital: Mapped[str] = mapped_column(String, nullable=False)
-    destination_hospital: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[str] = mapped_column(TransferStatusEnum, nullable=False, default="pending")
-    requested_date: Mapped[str] = mapped_column(String, nullable=False)  # YYYY-MM-DD
+class Transfer(BaseModel):
+    transfer_id: UUID
+    accident_id: Optional[UUID] = None
+    from_hospital_id: Optional[UUID] = None
+    to_hospital_id: Optional[UUID] = None
+    authorized_by: Optional[UUID] = None
+    authorization_reason: Optional[str] = None
+    state_of_transfer: Optional[str] = None
+    authorized_at: Optional[datetime] = None
+    requested_by: Optional[UUID] = None
+    requested_at: Optional[datetime] = None
+    approved_by: Optional[UUID] = None
+    decided_at: Optional[datetime] = None
+    status: Optional[str] = "pending_authorization"
