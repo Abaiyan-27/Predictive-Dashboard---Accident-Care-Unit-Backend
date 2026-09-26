@@ -1,6 +1,6 @@
 {
   "name": "discharge_outcome",
-  "version": "discharge-notebook-2026-08",
+  "version": "discharge-notebook-updated",
   "artifact": "discharge_outcome_model_notebook.joblib",
   "metadata_artifact": "discharge_outcome_metadata_notebook.joblib",
   "format": "joblib",

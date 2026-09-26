@@ -1,6 +1,6 @@
 {
   "name": "transfer_probability",
-  "version": "transfer-notebook-2026-08",
+  "version": "transfer-notebook-updated",
   "artifact": "transfer_model_notebook.joblib",
   "metadata_artifact": "transfer_metadata_notebook.joblib",
   "format": "joblib",

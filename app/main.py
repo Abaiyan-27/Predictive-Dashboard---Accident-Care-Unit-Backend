@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import Client
 
-from app.api import auth, nurse, doctor, admin, government
+from app.api import auth, nurse, doctor, admin, government, xai
 from app.core.config import get_settings
 from app.db.session import get_supabase
 from app.services import ml_service, schema_service
@@ -64,6 +64,7 @@ app.include_router(nurse.router, prefix=API_PREFIX)
 app.include_router(doctor.router, prefix=API_PREFIX)
 app.include_router(admin.router, prefix=API_PREFIX)
 app.include_router(government.router, prefix=API_PREFIX)
+app.include_router(xai.router, prefix=API_PREFIX)
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

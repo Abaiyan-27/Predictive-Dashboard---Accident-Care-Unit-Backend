@@ -1,6 +1,6 @@
 {
   "name": "severity_triage",
-  "version": "severity-notebook-2026-08",
+  "version": "severity-notebook-updated",
   "artifact": "severity_triage_model_notebook.joblib",
   "format": "joblib_bundle"
 }
