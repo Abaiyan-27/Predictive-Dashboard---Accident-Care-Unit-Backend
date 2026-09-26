@@ -16,7 +16,9 @@ import pandas as pd
 from catboost import CatBoostClassifier
 
 
-MODEL_ROOT = Path(__file__).resolve().parent.parent / "ml_models"
+LOCAL_MODEL_ROOT = Path(__file__).resolve().parent.parent / "ml_models"
+MODEL_ROOT = LOCAL_MODEL_ROOT
+MODEL_SOURCE = "local application bundle"
 
 AGE_ORDER = [
     "1-9", "10-19", "20-29", "30-39", "40-49",
@@ -332,6 +334,61 @@ def predict_severity(
 # ---------------------------------------------------------------------------
 
 _bundle_cache: dict[str, tuple[float, Any]] = {}
+
+
+def get_model_root() -> Path:
+    """Return the directory from which all model artifacts are loaded."""
+    return MODEL_ROOT
+
+
+def get_model_source() -> str:
+    """Return a safe, displayable description of the active model source."""
+    return MODEL_SOURCE
+
+
+def sync_models_from_huggingface(
+    repo_id: Optional[str],
+    *,
+    token: Optional[str] = None,
+    cache_dir: Optional[str] = None,
+) -> tuple[bool, str]:
+    """Download a Hub model bundle, then execute it from the local cache.
+
+    A failed or absent Hub configuration deliberately leaves the packaged local
+    model bundle active, so a temporary Hub outage never prevents the API from
+    starting when local artifacts are available.
+    """
+    global MODEL_ROOT, MODEL_SOURCE
+
+    if not repo_id:
+        return False, "HF_MODEL_REPO is not configured; using local model bundle."
+
+    try:
+        from huggingface_hub import snapshot_download
+    except ImportError:
+        return False, "huggingface_hub is not installed; using local model bundle."
+
+    try:
+        downloaded_path = snapshot_download(
+            repo_id=repo_id,
+            repo_type="model",
+            token=token or None,
+            local_dir=cache_dir or "/tmp/accident-care-models",
+        )
+    except Exception as exc:
+        return False, f"Could not download Hugging Face model bundle; using local bundle: {exc}"
+
+    downloaded_root = Path(downloaded_path)
+    if not (downloaded_root / "severity").exists():
+        return False, (
+            "Hugging Face model bundle does not contain the expected top-level "
+            "model folders; using local model bundle."
+        )
+
+    MODEL_ROOT = downloaded_root
+    MODEL_SOURCE = f"Hugging Face model repository: {repo_id}"
+    _bundle_cache.clear()
+    return True, f"Loaded model bundle from Hugging Face repository {repo_id}."
 
 
 def _read_contract(bundle_name: str) -> tuple[Optional[dict[str, Any]], Optional[str]]:

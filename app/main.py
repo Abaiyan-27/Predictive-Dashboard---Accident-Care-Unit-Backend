@@ -21,7 +21,13 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup/shutdown lifecycle — Supabase manages the DB, so nothing to init."""
+    """Download the optional remote model bundle before accepting requests."""
+    _, message = ml_service.sync_models_from_huggingface(
+        settings.hf_model_repo,
+        token=settings.hf_token,
+        cache_dir=settings.hf_model_cache_dir,
+    )
+    print(f"Model startup: {message}")
     yield
     # shutdown logic goes here if needed
 

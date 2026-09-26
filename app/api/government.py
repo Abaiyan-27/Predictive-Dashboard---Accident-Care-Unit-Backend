@@ -2,7 +2,6 @@
 from collections import Counter
 from datetime import datetime, timezone
 import json
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
@@ -13,12 +12,6 @@ from app.schemas.analytics import AccidentTrend, ForecastResponse
 from app.services import ml_service
 
 router = APIRouter(prefix="/government", tags=["Government"])
-HISTORICAL_TRENDS_ARTIFACT = (
-    Path(__file__).resolve().parent.parent
-    / "ml_models"
-    / "forecasting"
-    / "accident_historical_trends.json"
-)
 
 
 def _recent_months(count: int) -> list[tuple[int, int]]:
@@ -97,8 +90,9 @@ def get_accident_historical_trends(
 ):
     """Return monthly history exported from the forecasting notebook dataset."""
     del current_user
+    artifact_path = ml_service.get_model_root() / "forecasting" / "accident_historical_trends.json"
     try:
-        payload = json.loads(HISTORICAL_TRENDS_ARTIFACT.read_text(encoding="utf-8"))
+        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

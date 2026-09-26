@@ -20,6 +20,23 @@ CORS_ORIGINS=http://localhost:5173
 `SUPABASE_KEY` must be a service-role key because the administrator user flow
 creates Supabase Auth accounts. Keep `.env` private.
 
+### Optional: models stored on Hugging Face
+
+The backend always runs predictions locally. To store the model bundle in a
+private Hugging Face repository and download it when FastAPI starts, add these
+values to `.env`:
+
+```env
+HF_MODEL_REPO=yusri009/accident-care-models
+HF_TOKEN=your-read-token
+HF_MODEL_CACHE_DIR=/tmp/accident-care-models
+```
+
+Do not commit the token. The Hugging Face repository must have the same root
+folders as `app/ml_models` (`severity`, `stay_duration`, `transfer`,
+`discharge`, and `forecasting`). If Hugging Face cannot be reached, the bundled
+local models remain the fallback.
+
 ## Run locally
 
 ```bash

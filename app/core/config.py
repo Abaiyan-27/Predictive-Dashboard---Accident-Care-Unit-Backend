@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
+    # Optional Hugging Face model repository. When configured, the backend
+    # downloads this bundle at startup and runs the downloaded files locally.
+    hf_model_repo: str | None = None
+    hf_token: str | None = None
+    hf_model_cache_dir: str = "/tmp/accident-care-models"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
