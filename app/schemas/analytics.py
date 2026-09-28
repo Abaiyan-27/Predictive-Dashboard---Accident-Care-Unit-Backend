@@ -35,3 +35,18 @@ class ForecastResponse(BaseModel):
     points: list[ForecastPoint]
     message: Optional[str] = None
     risk_thresholds: Optional[ForecastRiskThresholds] = None
+
+class AssociationRule(BaseModel):
+    antecedents: list[str]
+    consequents: list[str]
+    support: float
+    confidence: float
+    lift: float
+
+
+class AssociationRulesResponse(BaseModel):
+    status: str
+    total_rules: int
+    thresholds: dict
+    rules: list[AssociationRule]
+    message: Optional[str] = None

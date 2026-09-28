@@ -8,7 +8,7 @@ from supabase import Client
 
 from app.api.deps import require_government
 from app.db.session import get_supabase
-from app.schemas.analytics import AccidentTrend, ForecastResponse
+from app.schemas.analytics import AccidentTrend, AssociationRule, AssociationRulesResponse, ForecastResponse
 from app.services import ml_service
 
 router = APIRouter(prefix="/government", tags=["Government"])
@@ -146,3 +146,78 @@ def get_statistics(
         "total_transfers": transfers.count or 0,
         "pending_transfers": pending.count or 0,
     }
+
+@router.get("/association-rules", response_model=AssociationRulesResponse)
+def get_association_rules(
+    consequent: str = Query(default="", description="Filter rules whose consequents contain this substring"),
+    limit: int = Query(default=50, ge=1, le=500, description="Maximum number of rules to return"),
+    sort_by: str = Query(default="lift", description="Sort column: lift, confidence, or support"),
+    current_user: dict = Depends(require_government),
+):
+    """Return pre-computed Apriori association rules from the notebook artifact."""
+    del current_user
+
+    import csv
+    from pathlib import Path as _Path
+
+    artifact_path = ml_service.get_model_root() / "association_rules.csv"
+    if not artifact_path.exists():
+        # Fall back to the notebooks artifacts directory (project_root/Notebooks/artifacts/)
+        _project_root = _Path(__file__).resolve().parent.parent.parent
+        artifact_path = _project_root / "Notebooks" / "artifacts" / "association_rules.csv"
+
+    if not artifact_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Association rules artifact is not installed. Run Association_Rule_Mining.ipynb first.",
+        )
+
+    try:
+        with artifact_path.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+    except (OSError, Exception) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Could not read association rules artifact: {exc}",
+        ) from exc
+
+    rules: list[AssociationRule] = []
+    for row in rows:
+        try:
+            antecedents = [item.strip() for item in row["antecedents"].split(",") if item.strip()]
+            consequents = [item.strip() for item in row["consequents"].split(",") if item.strip()]
+            # Apply consequent filter if provided
+            if consequent and not any(consequent.lower() in c.lower() for c in consequents):
+                continue
+            rules.append(
+                AssociationRule(
+                    antecedents=antecedents,
+                    consequents=consequents,
+                    support=round(float(row["support"]), 4),
+                    confidence=round(float(row["confidence"]), 4),
+                    lift=round(float(row["lift"]), 4),
+                )
+            )
+        except (KeyError, ValueError):
+            continue
+
+    # Sort
+    valid_sorts = {"lift", "confidence", "support"}
+    sort_key = sort_by if sort_by in valid_sorts else "lift"
+    rules.sort(key=lambda r: getattr(r, sort_key), reverse=True)
+
+    return AssociationRulesResponse(
+        status="OK",
+        total_rules=len(rules),
+        thresholds={
+            "min_support": 0.02,
+            "min_confidence": 0.50,
+            "min_lift": 1.2,
+        },
+        rules=rules[:limit],
+        message=(
+            f"{len(rules)} validated rules available (showing top {min(limit, len(rules))} by {sort_key}). "
+            "Rules were checked for stability across 5 independent random data splits."
+        ),
+    )
