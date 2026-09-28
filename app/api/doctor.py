@@ -33,6 +33,7 @@ def get_hospital_patients(
         .select("*, Patient(*), Injury_Description(*), Treatment(*), Transfer(*)")
         .eq("hospital_id", hospital_id)
         .order("created_at", desc=True)
+        .limit(50)
         .execute()
     )
     return patient_service.add_severity_predictions(result.data or [])

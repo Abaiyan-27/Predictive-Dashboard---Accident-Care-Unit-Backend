@@ -143,6 +143,7 @@ def get_my_patients(
         .select("*, Patient(*), Injury_Description(*), Treatment(*), Transfer(*)")
         .eq("created_by", str(user_id))
         .order("created_at", desc=True)
+        .limit(50)
         .execute()
     )
     return patient_service.add_severity_predictions(result.data or [])
