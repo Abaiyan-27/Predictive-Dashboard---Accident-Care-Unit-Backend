@@ -39,6 +39,21 @@ def _collision_time_bucket(value: Any) -> Any:
     return labels[parsed.hour // 3]
 
 
+def _age_bucket(value: Any) -> Any:
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        val = int(value)
+    except (ValueError, TypeError):
+        return value
+    val = max(1, min(100, val))
+    if val <= 9:
+        return "1-9"
+    lower = min((val // 10) * 10, 90)
+    upper = 100 if lower == 90 else lower + 9
+    return f"{lower}-{upper}"
+
+
 def build_model_record(
     *,
     patient: dict[str, Any],
@@ -63,10 +78,29 @@ def build_model_record(
         for treatment in treatments
     ) if treatments else None
 
+    # Determine "Other Injury" from the accident record or from the presence
+    # of a secondary injury.  We only fill defaults when at least one real
+    # injury record has been supplied — otherwise these defaults inflate the
+    # severity model's completeness count and cause it to run prematurely.
+    other_injury_value = accident.get("other_injury")
+    has_any_injury_data = bool(first_injury.get("site_of_injury") or first_injury.get("type_of_injury"))
+    if other_injury_value is None and has_any_injury_data:
+        if len(injuries) > 1:
+            other_injury_value = "multiple"
+        else:
+            other_injury_value = "no other injury"
+
+    # Determine secondary injury site default.  When no second injury record
+    # exists the model expects "no secondary injury found", but only if the
+    # nurse has already recorded at least one injury.
+    secondary_site = second_injury.get("site_of_injury")
+    if secondary_site is None and has_any_injury_data and len(injuries) <= 1:
+        secondary_site = "no secondary injury found"
+
     return {
-        # Arrival-time severity-triage inputs.
+        # ── Severity-triage raw inputs (12 fields) ────────────────────────
         "Time of Collision": _collision_time_bucket(accident.get("incident_at")),
-        "Age": patient.get("age"),
+        "Age": _age_bucket(patient.get("age")),
         "Mode Of Travel During Accident": accident.get("mode_of_travel_during_accident"),
         "Collision With ": accident.get("collision_with"),
         "Vehicle Type": accident.get("vehicle_type"),
@@ -75,9 +109,9 @@ def build_model_record(
         "Mode of Transport to the Hospital": accident.get("mode_of_transport"),
         "Time Taken To Reach Hospital": accident.get("time_to_hospital"),
         "Site of Injury No1": first_injury.get("site_of_injury"),
-        "Site of injury No 2": second_injury.get("site_of_injury"),
-        "Other Injury": accident.get("other_injury"),
-        # Post-treatment stay, transfer, and discharge inputs.
+        "Site of injury No 2": secondary_site,
+        "Other Injury": other_injury_value,
+        # ── Post-treatment discharge / stay / transfer inputs ─────────────
         "Collision With": accident.get("collision_with"),
         "Approximate Speed": accident.get("speed"),
         "Road Type": accident.get("road_type"),

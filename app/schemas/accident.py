@@ -28,6 +28,10 @@ class AccidentRecordCreatePayload(BaseModel):
     mode_of_transport: Optional[str] = None
     time_to_hospital: Optional[str] = None
     collision_with: Optional[str] = None
+    # Severity model raw inputs
+    mode_of_travel_during_accident: Optional[str] = None
+    passenger_type: Optional[str] = None
+    other_injury: Optional[str] = None
 
 
 class AccidentRecordOut(BaseModel):
@@ -54,6 +58,10 @@ class AccidentRecordOut(BaseModel):
     mode_of_transport: Optional[str] = None
     time_to_hospital: Optional[str] = None
     collision_with: Optional[str] = None
+    # Severity model raw inputs
+    mode_of_travel_during_accident: Optional[str] = None
+    passenger_type: Optional[str] = None
+    other_injury: Optional[str] = None
 
 
 # ── Injury Description ───────────────────────────────────────────────────────
@@ -129,10 +137,10 @@ class HospitalPatientOut(BaseModel):
 # ── Severity Prediction (ML model output) ────────────────────────────────────
 
 class SeverityPredictionOut(BaseModel):
-    prediction: Optional[str] = None       # "Moderate" | "Severe" | None (if refused)
+    prediction: Optional[str] = None       # "Low" | "Borderline" | "High" | None (if refused/deferred)
     probability: Optional[float] = None    # model confidence (0–1)
     completeness: float                    # fraction of features filled (0–1)
-    status: str                            # "OK" | "LOW CONFIDENCE" | "REFUSED"
+    status: str                            # "OK" | "LOW_CONFIDENCE" | "REFUSED"
     confidence_level: Optional[str] = None # "high" | "low" | None
     probabilities: dict[str, float] = Field(default_factory=dict)
     model_name: str = "severity"
@@ -143,40 +151,45 @@ class SeverityPredictionOut(BaseModel):
 # ── Combined intake form (convenience) ───────────────────────────────────────
 
 class FullIntakeForm(BaseModel):
-    """Combined form for nurse intake: creates Patient + AccidentRecord + InjuryDescriptions."""
+    """Combined form for nurse intake: creates Patient + AccidentRecord + InjuryDescriptions.
+
+    Most fields are optional to support partial data. The severity model
+    can still produce a prediction with missing fields; if too many are
+    absent the model returns DEFER TO CLINICAL JUDGEMENT.
+    """
     # Patient fields
     full_name: str = Field(min_length=1)
-    age: str = Field(min_length=1)
+    age: Optional[str] = None
     gender: Optional[str] = None
 
     # Accident fields
     hospital_id: Optional[UUID] = None
     first_hospital_id: Optional[UUID] = None
-    vehicle_type: str = Field(min_length=1)
+    vehicle_type: Optional[str] = None
     helmet_worn: Optional[str] = None
-    road_type: str = Field(min_length=1)
-    speed: str = Field(min_length=1)
-    incident_at: datetime
-    road_condition: str = Field(min_length=1)
-    visibility: str = Field(min_length=1)
+    road_type: Optional[str] = None
+    speed: Optional[str] = None
+    incident_at: Optional[datetime] = None
+    road_condition: Optional[str] = None
+    visibility: Optional[str] = None
     road_signals_exist: Optional[str] = None
-    collision_force_from: str = Field(min_length=1)
-    alcohol_consumption: str = Field(min_length=1)
+    collision_force_from: Optional[str] = None
+    alcohol_consumption: Optional[str] = None
     illicit_drugs: Optional[str] = None
 
-    # ML model feature fields
-    mode_of_transport: str = Field(min_length=1)
-    time_to_hospital: str = Field(min_length=1)
-    collision_with: str = Field(min_length=1)
+    # ML model feature fields (shared across models)
+    mode_of_transport: Optional[str] = None
+    time_to_hospital: Optional[str] = None
+    collision_with: Optional[str] = None
+
+    # Severity model raw inputs
+    mode_of_travel_during_accident: Optional[str] = None
+    passenger_type: Optional[str] = None
+    other_injury: Optional[str] = None
 
     # Injuries
     injuries: List[InjuryDescriptionPayload] = Field(default_factory=list)
 
-    @model_validator(mode="after")
-    def require_primary_injury(self):
-        if not self.injuries:
-            raise ValueError("Primary injury site and description are required.")
-        primary = self.injuries[0]
-        if not primary.site_of_injury or not primary.type_of_injury:
-            raise ValueError("Primary injury site and description are required.")
-        return self
+class UpdateIntakeForm(FullIntakeForm):
+    full_name: Optional[str] = None
+

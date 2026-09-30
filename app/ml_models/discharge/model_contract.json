@@ -4,6 +4,8 @@
   "artifact": "discharge_outcome_model_notebook.joblib",
   "metadata_artifact": "discharge_outcome_metadata_notebook.joblib",
   "format": "joblib",
+  "confidence_floor": 0.5,
+  "completeness_floor": 0.78,
   "label_map": {
     "complete recovery": "Complete recovery",
     "partial recovery": "Partial recovery",

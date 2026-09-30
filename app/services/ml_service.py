@@ -248,12 +248,16 @@ def predict_severity(
         return _unavailable(model_name, version, "Severity notebook bundle is incomplete.")
 
     raw_record = {feature: supplied.get(feature) for feature in raw_inputs}
-    completeness = sum(not _missing(value) for value in raw_record.values()) / len(raw_inputs)
-    completeness_floor = float(loaded.get("completeness_floor", COMPLETENESS_FLOOR))
+    present_count = sum(not _missing(value) for value in raw_record.values())
+    completeness = present_count / len(raw_inputs)
+    # Severity spec: fewer than ~4 of 12 raw fields → DEFER TO CLINICAL JUDGEMENT
+    # Raised from 2/12 to 4/12 so that Box 1 (name/age/gender only) does not
+    # trigger a prediction — the model needs actual accident details.
+    completeness_floor = float(loaded.get("completeness_floor", 4 / 12))
 
     if completeness < completeness_floor:
         return ModelPrediction(
-            prediction=None,
+            prediction="DEFER TO CLINICAL JUDGEMENT",
             probability=None,
             probabilities={},
             completeness=round(completeness, 3),
@@ -262,8 +266,8 @@ def predict_severity(
             model_name=model_name,
             model_version=version,
             message=(
-                f"Only {sum(not _missing(value) for value in raw_record.values())} of "
-                f"{len(raw_inputs)} triage details are available."
+                f"Only {present_count} of {len(raw_inputs)} triage details "
+                f"are available. Defer to clinical judgement."
             ),
         )
 
@@ -289,15 +293,15 @@ def predict_severity(
         low_cut = float(loaded.get("low_cut", 0.08))
         high_cut = float(loaded.get("high_cut", 0.32))
         if positive_probability >= high_cut:
-            prediction = "High"
+            prediction = "HIGH"
             status = "OK"
             confidence_level = "high"
         elif positive_probability < low_cut:
-            prediction = "Low"
+            prediction = "LOW"
             status = "OK"
             confidence_level = "high"
         else:
-            prediction = "Borderline"
+            prediction = "BORDERLINE"
             status = "LOW_CONFIDENCE"
             confidence_level = "low"
     except Exception as exc:

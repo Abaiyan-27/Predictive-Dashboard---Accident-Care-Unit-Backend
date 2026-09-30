@@ -17,6 +17,9 @@ MODEL_INTEGRATION_SCHEMA: dict[str, tuple[str, ...]] = {
         "collision_force_from",
         "alcohol_consumption",
         "illicit_drugs",
+        "mode_of_travel_during_accident",
+        "passenger_type",
+        "other_injury",
     ),
     "Treatment": (
         "investigation_done",

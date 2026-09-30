@@ -11,7 +11,12 @@ alter table public."Accident_Record"
     add column if not exists road_signals_exist text,
     add column if not exists collision_force_from text,
     add column if not exists alcohol_consumption text,
-    add column if not exists illicit_drugs text;
+    add column if not exists illicit_drugs text,
+
+    -- Severity model raw inputs.
+    add column if not exists mode_of_travel_during_accident text,
+    add column if not exists passenger_type text,
+    add column if not exists other_injury text;
 
 -- Stay-duration, transfer, and discharge model inputs.
 alter table public."Treatment"

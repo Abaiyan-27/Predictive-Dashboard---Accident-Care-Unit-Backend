@@ -4,5 +4,6 @@
   "artifact": "stay_duration_model_notebook.joblib",
   "metadata_artifact": "stay_duration_metadata_notebook.joblib",
   "format": "joblib",
-  "confidence_floor": 0.5
+  "confidence_floor": 0.5,
+  "completeness_floor": 0.625
 }

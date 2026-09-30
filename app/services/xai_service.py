@@ -249,11 +249,27 @@ def simulate_missing_field(model_key: str, record: Dict[str, Any], field: str, k
             "n_candidates_simulated": len(candidates)}
 
 
+def decision_from_proba(model_key: str, proba: np.ndarray, classes: List[str]) -> tuple[str, float, float]:
+    """Apply the deployed model's decision rule, including transfer's threshold."""
+    models = get_xai_models()
+    if model_key == "transfer":
+        yes_idx = classes.index("yes")
+        event_probability = float(proba[yes_idx])
+        threshold = float(models[model_key].get("decision_threshold", 0.5))
+        prediction = "yes" if event_probability >= threshold else "no"
+        prediction_idx = classes.index(prediction)
+        return prediction, event_probability, float(proba[prediction_idx])
+
+    prediction_idx = int(np.argmax(proba))
+    prediction = classes[prediction_idx]
+    prediction_probability = float(proba[prediction_idx])
+    return prediction, prediction_probability, prediction_probability
+
+
 def simulate_known_field(model_key: str, record: Dict[str, Any], field: str, k: int = DEFAULT_K_NEIGHBORS,
                          max_candidates: int = DEFAULT_MAX_CANDIDATES):
     current_proba, classes = predict_proba_row(model_key, record)
-    pred_idx = int(np.argmax(current_proba))
-    pred_class, pred_prob = str(classes[pred_idx]), float(current_proba[pred_idx])
+    pred_class, event_prob, pred_confidence = decision_from_proba(model_key, current_proba, classes)
 
     candidates = plausible_values(model_key, record, field, k=k, max_candidates=max_candidates,
                                   exclude_current=True)
@@ -265,20 +281,65 @@ def simulate_known_field(model_key: str, record: Dict[str, Any], field: str, k: 
         modified = dict(record)
         modified[field] = value
         proba, _ = predict_proba_row(model_key, modified)
-        new_idx = int(np.argmax(proba))
-        confidence_drop = pred_prob - float(proba[pred_idx])
-        results.append({"alternative_value": value, "resulting_prediction": str(classes[new_idx]),
+        new_class, _, new_confidence = decision_from_proba(model_key, proba, classes)
+        confidence_drop = pred_confidence - new_confidence
+        results.append({"alternative_value": value, "resulting_prediction": str(new_class),
                         "confidence_drop": round(confidence_drop, 4),
                         "confidence_shift_abs": round(abs(confidence_drop), 4),
-                        "flips_prediction": classes[new_idx] != pred_class})
+                        "flips_prediction": new_class != pred_class})
 
     most_sensitive = max(results, key=lambda r: r["confidence_shift_abs"])
 
     return {"field": field, "current_prediction": pred_class,
-            "current_probability": round(pred_prob, 4), "alternatives": results,
+            "current_probability": round(event_prob, 4), "alternatives": results,
             "max_confidence_shift": most_sensitive["confidence_shift_abs"],
             "most_sensitive_alternative": most_sensitive["alternative_value"],
             "any_flip": any(r["flips_prediction"] for r in results)}
+
+
+def _confidence_label(probability: float) -> str:
+    if probability >= 0.75:
+        return "high"
+    if probability >= 0.50:
+        return "moderate"
+    return "low"
+
+
+def _field_label(field: str) -> str:
+    labels = {
+        "Site of Injury No1": "main injury site",
+        "Site of injury No 2": "second injury site",
+        "Type of injury No 1": "main injury type",
+        "Type of Injury No 2": "second injury type",
+        "Mode of Transport to the Hospital": "transport to hospital",
+        "Time Taken To Reach Hospital": "time taken to reach hospital",
+        "Transfer To Next Hospital": "transfer status",
+        "Investigation Done": "investigation performed",
+        "Management Name 1": "primary management",
+        "Management Name 2": "secondary management",
+    }
+    return labels.get(field, field.lower())
+
+
+def _prediction_label(model_key: str, prediction: str) -> str:
+    if model_key == "transfer":
+        return f"Prediction: Transfer is {'likely' if prediction == 'yes' else 'unlikely'}."
+    if model_key == "stay":
+        return f"Prediction: Expected hospital stay is {prediction}."
+    return f"Prediction: Expected discharge outcome is {prediction}."
+
+
+def _interpretation_line(model_key: str, pred_class: str) -> str:
+    models = get_xai_models()
+    if model_key == "transfer":
+        threshold = models[model_key].get("decision_threshold", 0.5)
+        return (f"Meaning: Transfer is labelled likely at an estimated transfer probability of "
+                f"{float(threshold):.0%} or higher; this is a decision-support flag, not an instruction to transfer.")
+    if model_key == "stay":
+        return (f"Meaning: This is an estimate of the patient's stay-duration group ({pred_class}), "
+                "not a guaranteed discharge date or bed requirement.")
+    return (f"Meaning: This is an estimate of the recorded discharge-outcome group ({pred_class}), "
+            "not a diagnosis or a replacement for clinical assessment.")
 
 
 def explain(model_key: str, record: Dict[str, Any], k: int = DEFAULT_K_NEIGHBORS, 
@@ -294,70 +355,87 @@ def explain(model_key: str, record: Dict[str, Any], k: int = DEFAULT_K_NEIGHBORS
     missing_fields = [f for f in features
                       if record.get(f) is None or (isinstance(record.get(f), float)
                                                    and pd.isna(record.get(f)))]
-    known_fields = [f for f in features if f not in missing_fields]
+    present_count = len(features) - len(missing_fields)
+    completeness_floor = float(meta.get("completeness_floor", 0.0))
+
+    if present_count / len(features) < completeness_floor:
+        missing_label = ", ".join(_field_label(field) for field in missing_fields[:3])
+        return {
+            "model": model_key,
+            "doctor_explanation": [
+                "Prediction: A reliable prediction cannot be made yet.",
+                f"Estimated likelihood: Not available; only {present_count} of {len(features)} expected details are recorded.",
+                "Why: The model should not be interpreted with this amount of missing information.",
+                "Meaning: A model estimate can be provided once enough information is recorded; it is not a diagnosis.",
+                f"Next useful detail: record {missing_label}.",
+            ],
+        }
 
     proba, classes = predict_proba_row(model_key, record)
-    pred_idx = int(np.argmax(proba))
-    
-    # Check if there's a label mapping
-    label_map = {str(k): str(v) for k, v in (meta.get("label_map") or {}).items()}
-    display_classes = [label_map.get(str(c), str(c)) for c in classes]
-    
-    pred_class, pred_prob = display_classes[pred_idx], float(proba[pred_idx])
-    current_entropy = entropy_bits(proba)
-    max_entropy = float(np.log2(len(classes)))
+    pred_class, pred_prob, confidence_probability = decision_from_proba(model_key, proba, classes)
+    confidence = _confidence_label(confidence_probability)
 
-    result = {"model": model_key, "predicted_class": pred_class,
-              "predicted_probability": round(pred_prob, 4),
-              "entropy_bits": round(current_entropy, 4), "max_entropy_bits": round(max_entropy, 4),
-              "n_missing_fields": len(missing_fields), "n_known_fields": len(known_fields)}
+    cf_results = []
+    for field in features:
+        if field not in missing_fields:
+            result = simulate_known_field(model_key, record, field, k=k,
+                                          max_candidates=max_candidates)
+            if result is not None:
+                cf_results.append(result)
+    cf_results.sort(key=lambda result: result["max_confidence_shift"], reverse=True)
+
+    if cf_results:
+        hinge = cf_results[0]
+        field_name = _field_label(hinge["field"])
+        current_value = record.get(hinge["field"])
+        if hinge["any_flip"]:
+            alternative = next(item for item in hinge["alternatives"] if item["flips_prediction"])
+            reason_line = (f"Why: The estimate is mainly influenced by {field_name}, recorded as "
+                           f"'{current_value}'. A plausible alternative, "
+                           f"'{alternative['alternative_value']}', would change the result to "
+                           f"{alternative['resulting_prediction']}.")
+        else:
+            reason_line = (f"Why: The estimate is mainly influenced by {field_name}, recorded as "
+                           f"'{current_value}'. Plausible alternatives change the confidence, "
+                           f"but not the predicted result.")
+    else:
+        reason_line = "Why: No single recorded detail clearly determines this estimate; it reflects the combination of available information."
 
     if missing_fields:
         voi_results = []
-        for f in missing_fields:
-            r = simulate_missing_field(model_key, record, f, k=k, max_candidates=max_candidates)
-            if r is not None:
-                voi_results.append(r)
-        voi_results.sort(key=lambda r: r["expected_reduction_bits"], reverse=True)
-        result["value_of_information_ranking"] = voi_results
-
+        for field in missing_fields:
+            result = simulate_missing_field(model_key, record, field, k=k,
+                                            max_candidates=max_candidates)
+            if result is not None:
+                voi_results.append(result)
+        voi_results.sort(key=lambda result: result["expected_reduction_bits"], reverse=True)
         if voi_results and voi_results[0]["expected_reduction_bits"] >= epistemic_threshold_bits:
-            result["uncertainty_type"] = "epistemic"
-            result["recommended_field"] = voi_results[0]["field"]
-            result["message"] = (f"Uncertain ({pred_class}, {pred_prob:.0%}). Getting "
-                                 f"'{voi_results[0]['field']}' would likely help most "
-                                 f"(expected reduction: {voi_results[0]['expected_reduction_bits']:.2f} bits).")
+            missing_line = (f"Next useful detail: {_field_label(voi_results[0]['field'])} is not recorded; "
+                            f"adding it would most likely clarify this estimate.")
         else:
-            result["uncertainty_type"] = "aleatoric"
-            result["message"] = (f"Uncertain ({pred_class}, {pred_prob:.0%}). No missing field is "
-                                 f"expected to meaningfully resolve this - the case appears "
-                                 f"genuinely borderline.")
+            missing_line = (f"Data note: {len(missing_fields)} expected detail(s) are not recorded, "
+                            "but none is expected to materially resolve the uncertainty.")
     else:
-        result["uncertainty_type"] = "not_applicable_fully_specified"
-        result["value_of_information_ranking"] = []
+        missing_line = "Data note: All expected details for this model are recorded."
 
-    if known_fields:
-        cf_results = []
-        for f in known_fields:
-            r = simulate_known_field(model_key, record, f, k=k, max_candidates=max_candidates)
-            if r is not None:
-                cf_results.append(r)
-        cf_results.sort(key=lambda r: r["max_confidence_shift"], reverse=True)
-        result["counterfactual_ranking"] = cf_results
-        if cf_results:
-            top = cf_results[0]
-            result["hinge_field"] = top["field"]
-            flip_note = ""
-            if top["any_flip"]:
-                flipped_to = next(a["resulting_prediction"] for a in top["alternatives"]
-                                  if a["flips_prediction"])
-                
-                mapped_flipped_to = label_map.get(str(flipped_to), str(flipped_to))
-                flip_note = f" A plausible alternative value would flip it to '{mapped_flipped_to}'."
-            result["hinge_message"] = (f"This prediction is most sensitive to '{top['field']}' - "
-                                       f"an alternative plausible value would shift confidence by "
-                                       f"up to {top['max_confidence_shift']:.0%}.{flip_note}")
-    else:
-        result["counterfactual_ranking"] = []
+    probability_line = (
+        f"Estimated transfer likelihood: {pred_prob:.0%}. This is a {confidence}-confidence model estimate, not a clinical certainty."
+        if model_key == "transfer" else
+        f"Estimated likelihood: {pred_prob:.0%}. This is a {confidence}-confidence model estimate, not a clinical certainty."
+    )
 
-    return result
+    # We use label map for pred_class mapping for the UI
+    label_map = {str(k): str(v) for k, v in (meta.get("label_map") or {}).items()}
+    display_pred_class = label_map.get(str(pred_class), str(pred_class))
+
+    return {
+        "model": model_key,
+        "predicted_class": display_pred_class,
+        "doctor_explanation": [
+            _prediction_label(model_key, display_pred_class),
+            probability_line,
+            reason_line,
+            _interpretation_line(model_key, display_pred_class),
+            missing_line,
+        ],
+    }
