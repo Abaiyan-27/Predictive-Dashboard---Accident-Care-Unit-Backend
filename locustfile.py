@@ -3,12 +3,14 @@ import json
 import os
 from locust import HttpUser, task, between, events
 
-# Load pre-fetched tokens to avoid Supabase auth rate-limits during scale-up
+# Load pre-fetched tokens (written by fetch_tokens.py, keyed by role) to avoid
+# Supabase auth rate-limits during scale-up. No credentials live in this file.
+TOKENS_FILE = os.environ.get("LOAD_TEST_TOKENS_FILE", "tokens.json")
 try:
-    with open("tokens.json", "r") as f:
+    with open(TOKENS_FILE, "r") as f:
         AUTH_TOKENS = json.load(f)
 except FileNotFoundError:
-    print("ERROR: tokens.json not found! Please run 'python fetch_tokens.py' first.")
+    print(f"ERROR: {TOKENS_FILE} not found! Please run 'python fetch_tokens.py' first.")
     AUTH_TOKENS = {}
 
 class BaseHospitalUser(HttpUser):
@@ -16,9 +18,9 @@ class BaseHospitalUser(HttpUser):
     
     def on_start(self):
         """Use pre-fetched JWTs."""
-        auth_data = AUTH_TOKENS.get(self.email)
+        auth_data = AUTH_TOKENS.get(self.role)
         if not auth_data:
-            print(f"No pre-fetched token found for {self.email}. Exiting.")
+            print(f"No pre-fetched token found for the {self.role} account. Exiting.")
             self.environment.runner.quit()
             return
             
@@ -39,8 +41,7 @@ class NurseUser(BaseHospitalUser):
     """
     weight = 5
     wait_time = between(1, 5)
-    email = "nurse@accidentcare.org"
-    password = "DemoPass123!"
+    role = "nurse"
 
     @task(3)
     def submit_intake(self):
@@ -86,8 +87,7 @@ class DoctorUser(BaseHospitalUser):
     """
     weight = 3
     wait_time = between(2, 6)
-    email = "doctor@accidentcare.org"
-    password = "DemoPass123!"
+    role = "doctor"
 
     @task(2)
     def view_hospital_patients(self):
@@ -110,8 +110,7 @@ class GovernmentUser(BaseHospitalUser):
     """
     weight = 1
     wait_time = between(5, 15)
-    email = "gov@accidentcare.org"
-    password = "DemoPass123!"
+    role = "government"
 
     @task
     def view_analytics(self):

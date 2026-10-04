@@ -15,12 +15,12 @@ bundle. Preprocessing and feature order are declared by each bundle's
    pip install -r requirements.txt
    ```
 
-2. Run `supabase_model_integration.sql` once in the Supabase SQL editor. It adds
-   only the accident, treatment, and transfer fields consumed by the installed
-   notebook models. Predictions are returned directly and are not duplicated in
-   a separate database table.
-   The same idempotent migration is also stored under `supabase/migrations/` for
-   projects that use the Supabase CLI migration workflow.
+2. Apply every SQL file in `supabase/migrations/` in filename order (Supabase
+   CLI `supabase db push`, or paste each into the SQL editor). They are
+   idempotent and abort with a list of offending rows rather than changing data
+   that would violate a new constraint. They create the base tables, the model
+   input columns, ordered injuries, the hospital network, and the append-only
+   `Model_Prediction` / `Prediction_Decision` history tables.
 
    After running it, verify the live database at
    `http://localhost:8000/health/database-schema`. The top-level `ready` value

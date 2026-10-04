@@ -46,7 +46,7 @@ The backend adopts a clean, layered architecture separating routing, business lo
 │     ├── ml_service.py    ──▶ Runs Severity, LOS, Prognosis & Risk Inference │
 │     └── audit_service.py ──▶ Logs user actions for compliance               │
 │                                                                             │
-│  6. Database Layer (app/db/ & app/models/)                                  │
+│  6. Database Layer (app/db/ & supabase/migrations/)                        │
 │     └── SQLAlchemy 2.0 ORM translates python objects into SQL queries       │
 └─────────────────────────────────────────────────────────────────────────────┘
               │
@@ -72,16 +72,16 @@ The backend adopts a clean, layered architecture separating routing, business lo
 ## 3. Directory & File Walkthrough
 
 ### 📁 Root Directory
-* **[.env](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/.env)**: Environment configuration for JWT secret, token expiration time, database URL, and CORS origins.
-* **[requirements.txt](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/requirements.txt)**: Python package manifest.
-* **[README.md](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/README.md)**: Quick start guide and commands.
+* **.env** (git-ignored; template [.env.example](.env.example)): environment configuration for the session signing key, token expiration time, Supabase URL and service-role key, and CORS origins. See [DEPLOYMENT.md](DEPLOYMENT.md).
+* **[requirements.txt](requirements.txt)**: Python package manifest.
+* **[README.md](README.md)**: Quick start guide and commands.
 
 ---
 
 ### 📁 `app/` Directory
 
 #### Application Entry Point
-* **[app/main.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/main.py)**
+* **[app/main.py](app/main.py)**
   * Initializes the `FastAPI` instance.
   * Configures `CORSMiddleware` to allow requests from the React frontend.
   * Registers all routers with the `/api` prefix.
@@ -91,10 +91,10 @@ The backend adopts a clean, layered architecture separating routing, business lo
 ---
 
 #### Core Utilities (`app/core/`)
-* **[app/core/config.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/core/config.py)**
+* **[app/core/config.py](app/core/config.py)**
   * Uses `pydantic-settings` to parse configuration variables from `.env` or system environment.
   * Implements `get_settings()` with `@lru_cache` to avoid reloading configuration on every request.
-* **[app/core/security.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/core/security.py)**
+* **[app/core/security.py](app/core/security.py)**
   * `get_password_hash(plain_pwd)`: Hashes passwords with bcrypt.
   * `verify_password(plain_pwd, hashed_pwd)`: Timing-safe password verification.
   * `create_access_token(data, expires_delta)`: Creates signed JWT tokens with UTC expiration.
@@ -103,62 +103,54 @@ The backend adopts a clean, layered architecture separating routing, business lo
 ---
 
 #### Database Layer (`app/db/`)
-* **[app/db/base.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/db/base.py)**
+* **[app/db/base.py](app/db/base.py)**
   * Declares the SQLAlchemy `Base(DeclarativeBase)` class inherited by all ORM entities.
-* **[app/db/session.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/db/session.py)**
+* **[app/db/session.py](app/db/session.py)**
   * Initializes the database `engine` (with SQLite thread-safety settings if applicable).
   * Provides the `get_db()` dependency generator that supplies a scoped session to endpoints and guarantees cleanup (`db.close()`).
-* **[app/db/init_db.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/db/init_db.py)**
+* **[app/db/init_db.py](app/db/init_db.py)**
   * Runs on startup: builds tables and seeds demo accounts (`nurse`, `doctor`, `admin`, `gov`), hospitals, demo patients, transfers, and initial audit logs.
   * Uses `db.query(User).count() == 0` check to ensure idempotent startup without creating duplicates.
 
 ---
 
-#### Database Models (`app/models/`)
-* **[app/models/user.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/models/user.py)**: `User` entity (`id`, `name`, `email`, `hashed_password`, `role`, `hospital_id`, `hospital_name`).
-* **[app/models/patient.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/models/patient.py)**: `Patient` entity storing intake information (`age`, `gender`, `collision_type`, `injury_description`) along with ML-predicted results (`severity`, `priority`, `predicted_los_days`).
-* **[app/models/hospital.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/models/hospital.py)**: `Hospital` entity tracking bed capacities (`total_beds`, `occupied_beds`, `available_beds`).
-* **[app/models/transfer.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/models/transfer.py)**: `Transfer` entity for hospital-to-hospital transfer requests (`source_hospital`, `destination_hospital`, `status`).
-* **[app/models/audit_log.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/models/audit_log.py)**: `AuditLog` entity recording user actions with timestamp for compliance.
-
----
+#### Database schema (`supabase/migrations/`)
+The schema is defined by the SQL migrations, applied in filename order. The old `app/models/` classes were removed in Phase 9: nothing imported them, and the API reads and writes rows through Supabase directly. Model outputs are stored in `Model_Prediction` and human decisions in `Prediction_Decision`.
 
 #### Pydantic Schemas (`app/schemas/`)
-* **[app/schemas/auth.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/auth.py)**: `LoginCredentials`, `AuthResponse`.
-* **[app/schemas/user.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/user.py)**: `UserOut`, `CreateUserPayload`.
-* **[app/schemas/patient.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/patient.py)**: `PatientIntakeForm`, `PatientOut`, `PrognosisOut`.
-* **[app/schemas/hospital.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/hospital.py)**: `HospitalStatus`.
-* **[app/schemas/transfer.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/transfer.py)**: `TransferOut`, `UpdateTransferStatus`.
-* **[app/schemas/audit_log.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/audit_log.py)**: `AuditLogOut`.
-* **[app/schemas/analytics.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/schemas/analytics.py)**: `AccidentTrend`, `RiskPrediction`.
+* **[app/schemas/auth.py](app/schemas/auth.py)**: `LoginCredentials`, `AuthResponse`.
+* **[app/schemas/user.py](app/schemas/user.py)**: `UserOut`, `CreateUserPayload`.
+* **[app/schemas/patient.py](app/schemas/patient.py)**: `PatientIntakeForm`, `PatientOut`, `PrognosisOut`.
+* **[app/schemas/hospital.py](app/schemas/hospital.py)**: `HospitalStatus`.
+* **[app/schemas/transfer.py](app/schemas/transfer.py)**: `TransferOut`, `UpdateTransferStatus`.
+* **[app/schemas/audit_log.py](app/schemas/audit_log.py)**: `AuditLogOut`.
+* **[app/schemas/analytics.py](app/schemas/analytics.py)**: `AccidentTrend`, `RiskPrediction`.
 
 ---
 
 #### Business & ML Services (`app/services/`)
-* **[app/services/ml_service.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/services/ml_service.py)**
+* **[app/services/ml_service.py](app/services/ml_service.py)**
   * Encapsulates all prediction logic.
-  * Contains a realistic heuristic fallback engine with stable signatures.
-  * Ready to load real ML models (`.joblib` / `.pkl`) for:
-    1. Severity prediction (`Critical`, `Moderate`, `Minor`)
-    2. Triage priority (`High`, `Medium`, `Low`)
-    3. Length of Stay (`predicted_los_days`)
-    4. Recovery level (`Full Recovery`, `Partial Recovery`, `Long-term Care`)
-    5. Partial recovery probability (`0-100%`)
-    6. Regional accident risk forecasting
-* **[app/services/audit_service.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/services/audit_service.py)**
+  * Runs the four deployed patient models and returns only their contract labels:
+    1. Severity (nurse decision): `HIGH`, `BORDERLINE`, `LOW`, or `DEFER TO CLINICAL JUDGEMENT` when it cannot score
+    2. Stay Duration (doctor decision): `0-1 days`, `2-3 days`, `4+ days`
+    3. Transfer (doctor decision): `Transfer`, `No transfer`
+    4. Discharge Outcome (doctor decision): `Complete recovery`, `Partial recovery`, `Further interventions`
+  * Also serves the seasonal-naive monthly accident forecast for Government (its Low / Medium / High bands describe monthly accident volume, not patient Severity).
+* **[app/services/audit_service.py](app/services/audit_service.py)**
   * Helper function `log_action()` that writes an audit entry and calls `db.flush()` so audit records remain atomic with the business transaction.
 
 ---
 
 #### API Routers & Dependencies (`app/api/`)
-* **[app/api/deps.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/deps.py)**:
+* **[app/api/deps.py](app/api/deps.py)**:
   * `get_current_user`: Decodes JWT from Authorization Bearer header, validates user existence in DB.
   * `RoleChecker`: Callable class for role validation. Provides pre-built dependencies: `require_nurse`, `require_doctor`, `require_admin`, `require_government`.
-* **[app/api/auth.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/auth.py)**: Login route (`POST /api/auth/login`).
-* **[app/api/nurse.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/nurse.py)**: Patient intake (`POST /api/patients`), viewing nurse-admitted patients (`GET /api/patients/my`).
-* **[app/api/doctor.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/doctor.py)**: Hospital patient roster, patient details, and on-demand prognosis prediction (`GET /api/patients/{id}/prognosis`).
-* **[app/api/admin.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/admin.py)**: Real-time bed status, user creation, transfer management, and audit log inspection.
-* **[app/api/government.py](file:///home/yusri-ahamed/Sem_05/DSEProject/Ours/Predictive-Dashboard---Accident-Care-Unit-Backend/app/api/government.py)**: 12-month aggregated accident trends and regional risk analytics (no PII).
+* **[app/api/auth.py](app/api/auth.py)**: Login route (`POST /api/auth/login`).
+* **[app/api/nurse.py](app/api/nurse.py)**: Patient intake (`POST /api/patients`), viewing nurse-admitted patients (`GET /api/patients/my`).
+* **[app/api/doctor.py](app/api/doctor.py)**: Hospital patient roster, patient details, and on-demand prognosis prediction (`GET /api/patients/{id}/prognosis`).
+* **[app/api/admin.py](app/api/admin.py)**: Real-time bed status, user creation, transfer management, and audit log inspection.
+* **[app/api/government.py](app/api/government.py)**: 12-month aggregated accident trends and regional risk analytics (no PII).
 
 ---
 
@@ -206,9 +198,9 @@ When a request hits a protected endpoint:
        │ admission_date         │        │ total_beds             │
        │ collision_type         │        │ occupied_beds          │
        │ injury_description     │        │ available_beds         │
-       │ severity (ML)          │        └────────────────────────┘
-       │ priority (ML)          │
-       │ predicted_los_days(ML) │        ┌────────────────────────┐
+       │ (historical diagram)   │        └────────────────────────┘
+       │ see supabase/migrations│
+       │ for the current schema │        ┌────────────────────────┐
        │ created_by (FK: users) │        │        Transfer        │
        │ hospital_id            │        ├────────────────────────┤
        └────────────────────────┘        │ id (PK)                │
@@ -228,13 +220,14 @@ When a request hits a protected endpoint:
 
 All predictive features are centralized in `app/services/ml_service.py`.
 
-### The 6 Prediction Capabilities:
-1. **Severity Prediction**: Assigns `Critical`, `Moderate`, or `Minor` based on injury description, collision dynamics, and age vulnerability.
-2. **Triage Priority**: Assigns `High`, `Medium`, or `Low` priority for emergency room queuing.
-3. **Length of Stay (LOS)**: Estimates number of days the patient will occupy an inpatient bed.
-4. **Expected Recovery Level**: Forecasts `Full Recovery`, `Partial Recovery`, or `Long-term Care`.
-5. **Partial Recovery Probability**: Calculates a numerical likelihood percentage (`0%–100%`).
-6. **Regional Accident Forecasting**: Projects risk levels and incident frequencies across urban sectors.
+### The prediction capabilities
+1. **Severity** (run by the nurse at intake): `HIGH`, `BORDERLINE` or `LOW`; `DEFER TO CLINICAL JUDGEMENT` when the model cannot score the patient, in which case the nurse makes the clinical decision. The label list lives in `app/contracts/severity_labels.json`.
+2. **Stay Duration**: `0-1 days`, `2-3 days`, `4+ days`.
+3. **Transfer**: `Transfer`, `No transfer`. A prediction is not a transfer request; requests follow the admin → nurse workflow.
+4. **Discharge Outcome**: `Complete recovery`, `Partial recovery`, `Further interventions`.
+5. **Accident forecast** (Government): a seasonal-naive baseline of monthly accident counts, not a patient model.
+
+Every prediction is stored append-only in `Model_Prediction`; the nurse's or doctor's final decision is stored separately in `Prediction_Decision`. See `MODEL_INTEGRATION.md` for the artifacts.
 
 ### How to plug in trained models:
 Place `.joblib` or `.pkl` files in `app/ml_models/` and load them inside `ml_service.py` using `joblib.load()`. The API routers and frontend do not need any code changes because the return signatures remain consistent.
@@ -265,23 +258,16 @@ Place `.joblib` or `.pkl` files in `app/ml_models/` and load them inside `ml_ser
 ## 8. End-to-End Data Flow Examples
 
 ### Scenario A: Patient Intake Flow (Nurse)
-1. **Nurse submits form** via frontend (`name`, `age`, `gender`, `collision_type`, `injury_description`).
-2. Frontend calls `POST /api/patients` with `Authorization: Bearer <token>`.
-3. `require_nurse` validates that the token belongs to a user with the `nurse` role.
-4. `ml_service.predict_severity()` analyzes the clinical text and calculates:
-   * `severity`: `Critical`
-   * `priority`: `High`
-   * `predicted_los_days`: `15`
-5. Patient record is persisted to the database.
-6. `audit_service.log_action()` records: `"Patient 'Marcus Chen' admitted. Severity: Critical, Priority: High, LOS: 15 days."`
-7. Response is returned to the frontend and rendered in the dashboard list.
+1. **Nurse saves the basic details** (`POST /api/patients/intake`), then the Severity inputs (`PATCH /api/patients/intake/{accident_id}`). Each save is confirmed in the UI first.
+2. The nurse runs Severity (`POST /api/severity/accidents/{accident_id}/run`); the prediction is stored in `Model_Prediction`.
+3. The nurse accepts the prediction or records their own decision (`POST /api/severity/predictions/{prediction_id}/decision`). A `DEFER TO CLINICAL JUDGEMENT` result always needs the nurse's clinical decision.
+4. After the decision the Severity inputs are locked, and the event is written to the audit log.
 
-### Scenario B: Doctor Prognosis Review
-1. **Doctor selects an admitted patient** on the dashboard.
-2. Frontend calls `GET /api/patients/{patient_id}/prognosis`.
-3. `require_doctor` verifies the user's role.
-4. Backend retrieves stored patient attributes and passes them to `ml_service.predict_prognosis()`.
-5. Returns `expected_recovery_level`, `partial_recovery_probability`, and transfer suggestions.
+### Scenario B: Doctor Review
+1. **Doctor opens a patient** from the hospital list (`GET /api/doctor/accidents/{accident_id}`): Severity is shown read-only with the nurse's decision.
+2. The doctor records treatment (`POST /api/treatments`); the Stay, Transfer and Discharge models run on it.
+3. For each model the doctor accepts the prediction or records their own decision (`POST /api/doctor/accidents/{accident_id}/predictions/{prediction_id}/decision`).
+4. Out-of-date predictions (inputs changed, or the patient moved hospital) must be run again before a decision.
 
 ---
 

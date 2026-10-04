@@ -71,7 +71,8 @@ def setup_mock_db_for_user(mock_supabase, role: str):
         if table_name == "User":
             if role in ["nurse", "doctor", "admin"]:
                 mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                    {"user_id": f"{role}-123", "role": role}
+                    {"user_id": f"{role}-123", "role": role,
+                     "hospital_id": "00000000-0000-0000-0000-0000000000a1"}
                 ])
             else:
                 mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[])
@@ -114,12 +115,12 @@ def test_admin_access(client, mock_supabase, admin_token):
     )
     assert response.status_code == status.HTTP_200_OK
     
-    # Admin can also access nurse-only (require_nurse allows ['nurse', 'admin'])
+    # Intake is a nurse workflow; admins no longer pass require_nurse.
     response2 = client.get(
         "/test-deps/nurse-only",
         headers={"Authorization": f"Bearer {admin_token}"}
     )
-    assert response2.status_code == status.HTTP_200_OK
+    assert response2.status_code == status.HTTP_403_FORBIDDEN
     
     # Admin CANNOT access doctor-only
     response3 = client.get(
@@ -137,3 +138,28 @@ def test_doctor_access(client, mock_supabase, doctor_token):
         headers={"Authorization": f"Bearer {doctor_token}"}
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_staff_without_hospital_is_refused(client, mock_supabase, admin_token):
+    """The production admin with no hospital must not reach any staff endpoint."""
+    def table_side_effect(table_name):
+        mock_table = MagicMock()
+        if table_name == "User":
+            mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
+                {"user_id": "admin-123", "role": "admin", "hospital_id": None}
+            ])
+        return mock_table
+    mock_supabase.table.side_effect = table_side_effect
+
+    response = client.get("/test-deps/admin-only", headers={"Authorization": f"Bearer {admin_token}"})
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "not assigned to a hospital" in response.json()["detail"]
+
+
+def test_role_comes_from_database_not_token(client, mock_supabase):
+    """A token claiming 'admin' for a user stored as a nurse is treated as a nurse."""
+    from tests.conftest import generate_test_token
+    setup_mock_db_for_user(mock_supabase, "nurse")
+    forged = generate_test_token("nurse-123", "admin")
+    response = client.get("/test-deps/admin-only", headers={"Authorization": f"Bearer {forged}"})
+    assert response.status_code == status.HTTP_403_FORBIDDEN

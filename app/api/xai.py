@@ -1,42 +1,41 @@
-from typing import Any, Dict
+import logging
+from typing import Dict
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 from supabase import Client
 
 from app.services.xai_service import explain, UnknownModelError, ModelLoadError, XAIEngineError
-from app.api.deps import get_current_user
+from app.api.deps import require_doctor
+from app.core.authorization import ALL_MODELS, Principal, ensure_can_view_model, load_accident
 from app.db.session import get_supabase
 from app.services import patient_service
 
 router = APIRouter(prefix="/xai", tags=["Explainability"])
+logger = logging.getLogger(__name__)
 
 class ExplainRequest(BaseModel):
     model_name: str
-    accident_id: str
+    accident_id: UUID
 
 @router.post("/explain")
 def get_explanation(
     request: ExplainRequest, 
-    current_user: Any = Depends(get_current_user),
+    current_user: Principal = Depends(require_doctor),
     supabase: Client = Depends(get_supabase)
 ):
     """
     Explain a model prediction using Value of Information and Counterfactual sensitivity.
-    Requires an authenticated user (doctor, nurse, or admin).
+    Explanations cover the doctor models, so only doctors may request them,
+    and only for episodes held by their own hospital.
     """
     try:
-        # Fetch the necessary records
-        accidents = (
-            supabase.table("Accident_Record")
-            .select("*, Injury_Description(*), Treatment(*)")
-            .eq("accident_id", request.accident_id)
-            .limit(1)
-            .execute()
+        if request.model_name in ALL_MODELS:
+            ensure_can_view_model(current_user, request.model_name)
+        accident = load_accident(
+            supabase, current_user, request.accident_id, "*, Injury_Description(*), Treatment(*)"
         )
-        if not accidents.data:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No accident record found.")
-        accident = accidents.data[0]
         
         patient_id = accident.get("patient_id")
         patient = {}
@@ -48,7 +47,7 @@ def get_explanation(
         transfer_result = (
             supabase.table("Transfer")
             .select("*")
-            .eq("accident_id", request.accident_id)
+            .eq("accident_id", str(request.accident_id))
             .order("requested_at", desc=True)
             .execute()
         )
@@ -63,11 +62,14 @@ def get_explanation(
         return explanation
     except UnknownModelError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except ModelLoadError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except XAIEngineError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+    except ModelLoadError:
+        logger.exception("XAI model could not be loaded")
+        raise HTTPException(status_code=503, detail="The explanation model is not available.")
+    except XAIEngineError:
+        logger.exception("XAI explanation failed")
+        raise HTTPException(status_code=422, detail="The explanation could not be generated for this patient.")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    except Exception:
+        logger.exception("Unexpected XAI error")
+        raise HTTPException(status_code=500, detail="The explanation could not be generated.")

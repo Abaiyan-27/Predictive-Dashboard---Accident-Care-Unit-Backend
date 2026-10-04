@@ -8,8 +8,16 @@ from supabase import Client
 
 from app.api.deps import require_government
 from app.db.session import get_supabase
-from app.schemas.analytics import AccidentTrend, AssociationRule, AssociationRulesResponse, ForecastResponse
-from app.services import ml_service
+from app.schemas.analytics import (
+    AccidentTrend,
+    AssociationRule,
+    AssociationRulesResponse,
+    ForecastResponse,
+    GovernmentStatistics,
+    ModelKey,
+    ModelSummary,
+)
+from app.services import government_analytics, ml_service
 
 router = APIRouter(prefix="/government", tags=["Government"])
 
@@ -122,7 +130,7 @@ def get_accident_forecast(
     return ml_service.predict_accident_forecast(horizon).to_dict()
 
 
-@router.get("/statistics")
+@router.get("/statistics", response_model=GovernmentStatistics)
 def get_statistics(
     supabase: Client = Depends(get_supabase),
     current_user: dict = Depends(require_government),
@@ -133,19 +141,27 @@ def get_statistics(
     patients = supabase.table("Patient").select("patient_id", count="exact").execute()
     hospitals = supabase.table("Hospital").select("hospital_id", count="exact").execute()
     transfers = supabase.table("Transfer").select("transfer_id", count="exact").execute()
-    pending = (
-        supabase.table("Transfer")
-        .select("transfer_id", count="exact")
-        .eq("status", "pending_authorization")
-        .execute()
-    )
+    by_status = government_analytics.transfers_by_status(supabase)
     return {
         "total_accidents": accidents.count or 0,
         "total_patients": patients.count or 0,
         "total_hospitals": hospitals.count or 0,
         "total_transfers": transfers.count or 0,
-        "pending_transfers": pending.count or 0,
+        "pending_transfers": by_status["pending_authorization"],
+        "transfers_by_status": by_status,
     }
+
+
+@router.get("/models/{model_key}", response_model=ModelSummary)
+def get_model_summary(
+    model_key: ModelKey,
+    supabase: Client = Depends(get_supabase),
+    current_user: dict = Depends(require_government),
+):
+    """Network-wide aggregate statistics for one patient model (read-only, no patient data)."""
+    del current_user
+    return government_analytics.model_summary(supabase, model_key)
+
 
 @router.get("/association-rules", response_model=AssociationRulesResponse)
 def get_association_rules(
@@ -176,10 +192,10 @@ def get_association_rules(
         with artifact_path.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
-    except (OSError, Exception) as exc:
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Could not read association rules artifact: {exc}",
+            detail="The association rules artifact could not be read.",
         ) from exc
 
     rules: list[AssociationRule] = []

@@ -117,16 +117,14 @@ def test_sec_006_government_access_nurse_endpoint(client, mock_supabase, admin_t
 
 def test_sec_007_doctor_access_other_hospital(client, mock_supabase, doctor_token):
     """SEC-007: Doctor attempting to access another hospital's patient data -> denied (403)."""
-    # Doctor belongs to hospital-123
-    setup_mock_db_for_user(mock_supabase, "doctor", hospital_id="hospital-123")
-    
-    # Attempting to fetch patients for hospital-999
+    setup_mock_db_for_user(mock_supabase, "doctor", hospital_id="00000000-0000-0000-0000-0000000000a1")
+
     response = client.get(
-        "/api/patients/hospital/hospital-999",
+        "/api/patients/hospital/00000000-0000-0000-0000-0000000000b2",
         headers={"Authorization": f"Bearer {doctor_token}"}
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json()["detail"] == "Doctors can only view patients assigned to their hospital."
+    assert response.json()["detail"] == "hospital_id must be your own hospital."
 
 
 # ==============================================================================
@@ -134,7 +132,7 @@ def test_sec_007_doctor_access_other_hospital(client, mock_supabase, doctor_toke
 # ==============================================================================
 
 @patch("app.api.nurse.schema_service.require_intake_schema")
-@patch("app.api.nurse.patient_service.add_patient_predictions")
+@patch("app.api.nurse.patient_service.predict_and_store")
 @patch("app.api.nurse.audit_service.log_action")
 def test_sec_008_audit_trail_intake(
     mock_log_action, 
@@ -146,7 +144,7 @@ def test_sec_008_audit_trail_intake(
     nurse_token
 ):
     """SEC-008: Verify that applicable security-related activities are logged (e.g. Data access/creation)."""
-    setup_mock_db_for_user(mock_supabase, "nurse", hospital_id="hosp-123")
+    setup_mock_db_for_user(mock_supabase, "nurse", hospital_id="00000000-0000-0000-0000-000000000002")
     
     # Mocks for the intake to succeed
     mock_patient_table = MagicMock()
@@ -165,7 +163,7 @@ def test_sec_008_audit_trail_intake(
         if table_name == "User":
             mock_table = MagicMock()
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "hosp-123"}
+                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "00000000-0000-0000-0000-000000000002"}
             ])
             return mock_table
         elif table_name == "Patient": return mock_patient_table
@@ -177,9 +175,9 @@ def test_sec_008_audit_trail_intake(
     mock_supabase.table.side_effect = table_side_effect
     
     mock_add_predictions.return_value = {
-        "severity_prediction": "critical",
-        "stay_duration_prediction": 10,
-        "transfer_prediction": "icu",
+        "severity": {"prediction": "HIGH"},
+        "stay_duration": {"prediction": None},
+        "transfer": {"prediction": None},
     }
     
     response = client.post(
@@ -197,6 +195,6 @@ def test_sec_008_audit_trail_intake(
         actor_id="nurse-123",
         role="nurse",
         action_type="patient_intake",
-        hospital_id=uuid.UUID("00000000-0000-0000-0000-000000000002"),
+        hospital_id="00000000-0000-0000-0000-000000000002",
         accident_id="a-1"
     )

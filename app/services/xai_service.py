@@ -6,7 +6,15 @@ import numpy as np
 import pandas as pd
 from scipy.stats import entropy
 
-from app.services.ml_service import _read_contract, _bundle_settings, _load_bundle_model, MODEL_ROOT, _prepare_bundle_row
+from app.services import ml_service
+from app.services.ml_service import (
+    _bundle_settings,
+    _load_bundle_model,
+    _prepare_bundle_row,
+    _read_contract,
+    missing_required_inputs,
+    normalise_record,
+)
 
 logger = logging.getLogger("xai_engine")
 
@@ -27,12 +35,33 @@ class UnknownModelError(XAIEngineError):
 class ModelLoadError(XAIEngineError):
     """A required model or metadata file could not be loaded."""
 
-# Global state for XAI
+# Global state for XAI. Both caches belong to the model root they were built
+# from; when inference switches roots (e.g. after a Hugging Face download) they
+# are rebuilt so explanations score the same artifacts as the predictions.
 _MODELS: Dict[str, Any] = {}
 _TRAIN_POOLS: Dict[str, pd.DataFrame] = {}
+_CACHE_ROOT: Optional[Path] = None
+
+
+def _sync_cache_root() -> None:
+    global _CACHE_ROOT
+    root = ml_service.get_model_root()
+    if root != _CACHE_ROOT:
+        _MODELS.clear()
+        _TRAIN_POOLS.clear()
+        _CACHE_ROOT = root
+
+
+def training_data_path() -> Path:
+    """Prefer the dataset shipped with the active bundle, else the packaged copy."""
+    active = ml_service.get_model_root() / "Preprocessed_Dataset.csv"
+    if active.exists():
+        return active
+    return ml_service.LOCAL_MODEL_ROOT / "Preprocessed_Dataset.csv"
+
 
 def get_xai_models() -> Dict[str, Any]:
-    global _MODELS
+    _sync_cache_root()
     if _MODELS:
         return _MODELS
 
@@ -79,12 +108,12 @@ def consolidate_rare(frame: pd.DataFrame, meta: Dict[str, Any]) -> pd.DataFrame:
 
 
 def load_training_pools(data_path: str = None) -> Dict[str, pd.DataFrame]:
-    global _TRAIN_POOLS
+    _sync_cache_root()
     if _TRAIN_POOLS:
         return _TRAIN_POOLS
 
     if data_path is None:
-        data_path = str(MODEL_ROOT / "Preprocessed_Dataset.csv")
+        data_path = str(training_data_path())
     
     data_path_obj = Path(data_path)
     if not data_path_obj.exists():
@@ -317,6 +346,7 @@ def _field_label(field: str) -> str:
         "Investigation Done": "investigation performed",
         "Management Name 1": "primary management",
         "Management Name 2": "secondary management",
+        "total_days": "days in hospital",
     }
     return labels.get(field, field.lower())
 
@@ -324,7 +354,7 @@ def _field_label(field: str) -> str:
 def _prediction_label(model_key: str, prediction: str) -> str:
     if model_key == "transfer":
         return f"Prediction: Transfer is {'likely' if prediction == 'yes' else 'unlikely'}."
-    if model_key == "stay":
+    if model_key == "stay_duration":
         return f"Prediction: Expected hospital stay is {prediction}."
     return f"Prediction: Expected discharge outcome is {prediction}."
 
@@ -335,7 +365,7 @@ def _interpretation_line(model_key: str, pred_class: str) -> str:
         threshold = models[model_key].get("decision_threshold", 0.5)
         return (f"Meaning: Transfer is labelled likely at an estimated transfer probability of "
                 f"{float(threshold):.0%} or higher; this is a decision-support flag, not an instruction to transfer.")
-    if model_key == "stay":
+    if model_key == "stay_duration":
         return (f"Meaning: This is an estimate of the patient's stay-duration group ({pred_class}), "
                 "not a guaranteed discharge date or bed requirement.")
     return (f"Meaning: This is an estimate of the recorded discharge-outcome group ({pred_class}), "
@@ -351,7 +381,21 @@ def explain(model_key: str, record: Dict[str, Any], k: int = DEFAULT_K_NEIGHBORS
     models = get_xai_models()
     meta = models[model_key]
     features = meta["features"]
-    
+    record = normalise_record(record)
+
+    awaiting = missing_required_inputs(record, meta)
+    if awaiting:
+        awaiting_label = ", ".join(_field_label(field) for field in awaiting)
+        return {
+            "model": model_key,
+            "doctor_explanation": [
+                "Prediction: Not available until treatment is recorded.",
+                f"Why: This model needs post-treatment details that are not recorded yet ({awaiting_label}).",
+                "Meaning: No estimate is shown rather than one based on missing treatment information.",
+                f"Next useful detail: record {awaiting_label}.",
+            ],
+        }
+
     missing_fields = [f for f in features
                       if record.get(f) is None or (isinstance(record.get(f), float)
                                                    and pd.isna(record.get(f)))]

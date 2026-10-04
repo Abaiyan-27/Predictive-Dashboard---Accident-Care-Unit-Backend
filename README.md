@@ -6,35 +6,22 @@ prediction.
 
 ## Configure
 
-Create `.env` with:
+Copy [.env.example](.env.example) to `.env` (git-ignored) and fill it in.
+`SUPABASE_KEY` must be the service-role key, because the administrator user
+flow creates Supabase Auth accounts; keep it server-side only. The API refuses
+to start with a missing, placeholder or short `SECRET_KEY`.
 
-```env
-SECRET_KEY=replace-with-a-long-random-secret
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=480
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-service-role-key
-CORS_ORIGINS=http://localhost:5173
-```
-
-`SUPABASE_KEY` must be a service-role key because the administrator user flow
-creates Supabase Auth accounts. Keep `.env` private.
+Every variable, the migration order, CORS, model configuration, the test setup
+and the manual deployment checklist are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ### Optional: models stored on Hugging Face
 
-The backend always runs predictions locally. To store the model bundle in a
-private Hugging Face repository and download it when FastAPI starts, add these
-values to `.env`:
-
-```env
-HF_MODEL_REPO=yusri009/accident-care-models
-HF_TOKEN=your-read-token
-HF_MODEL_CACHE_DIR=/tmp/accident-care-models
-```
-
-Do not commit the token. The Hugging Face repository must have the same root
-folders as `app/ml_models` (`severity`, `stay_duration`, `transfer`,
-`discharge`, and `forecasting`). If Hugging Face cannot be reached, the bundled
+The backend always runs predictions locally. To download the model bundle from
+a Hugging Face repository once at startup, set `HF_MODEL_REPO`,
+`HF_MODEL_REVISION` (a commit hash, so every start runs the same artifacts)
+and, for a private repository, `HF_TOKEN`. The repository must have the same
+root folders as `app/ml_models` (`severity`, `stay_duration`, `transfer`,
+`discharge` and `forecasting`). If Hugging Face cannot be reached, the bundled
 local models remain the fallback.
 
 ## Run locally
@@ -43,23 +30,24 @@ local models remain the fallback.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 - Health: <http://localhost:8000/health>
 - Swagger: <http://localhost:8000/docs>
 
-## Optional demo accounts
+## Optional test accounts (development projects only)
 
-To provision all four roles in the configured Supabase project, run:
+`create_test_users.py` provisions one account per role from the `TEST_*`
+variables (see [.env.test.example](.env.test.example)); no password is stored
+in the repository. It resets the password of existing accounts with those
+emails, so it requires the target host to be typed out:
 
 ```bash
-python create_test_users.py
+python create_test_users.py --confirm-host <project-ref>.supabase.co
 ```
 
-The script is idempotent and prints the demo credentials when complete. It
-creates or updates external Supabase data, so run it only against the intended
-development project.
+Never run it against production.
 
 ## Main API groups
 

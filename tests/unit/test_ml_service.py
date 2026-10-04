@@ -11,12 +11,12 @@ from app.services.ml_service import (
 )
 
 def test_graceful_fallback_unavailable():
-    """Test that missing contracts result in an UNAVAILABLE status instead of throwing exceptions."""
+    """Missing contracts give status UNAVAILABLE and the DEFER label, never a guessed zone."""
     with patch('app.services.ml_service.Path.exists', return_value=False):
         result = predict_severity()
         assert result.status == "UNAVAILABLE"
         assert "Contract is missing" in result.message
-        assert result.prediction is None
+        assert result.prediction == "DEFER TO CLINICAL JUDGEMENT"
         assert result.probability is None
 
 

@@ -1,0 +1,4 @@
+{
+  "description": "The only severity outputs the API may return. Mirrored by src/contracts/severity.ts in the frontend; tests/unit/test_severity_contract.py fails if the two drift.",
+  "labels": ["HIGH", "BORDERLINE", "LOW", "DEFER TO CLINICAL JUDGEMENT"]
+}

@@ -2,11 +2,15 @@
 from collections.abc import Iterable
 from typing import Any
 
+import logging
+
 from postgrest.exceptions import APIError
 from supabase import Client
 
 
-MIGRATION_FILE = "supabase_model_integration.sql"
+logger = logging.getLogger(__name__)
+
+MIGRATION_FILE = "supabase/migrations"
 
 MODEL_INTEGRATION_SCHEMA: dict[str, tuple[str, ...]] = {
     "Accident_Record": (
@@ -27,6 +31,17 @@ MODEL_INTEGRATION_SCHEMA: dict[str, tuple[str, ...]] = {
         "management_name_2",
     ),
     "Transfer": ("state_of_transfer",),
+    "Injury_Description": ("injury_order",),
+    "Hospital": ("is_network_hospital",),
+    "Model_Version": ("model_version_id", "model_key", "fingerprint"),
+    "Model_Prediction": (
+        "prediction_id", "prediction_seq", "accident_id", "hospital_id", "model_key",
+        "model_version_id", "status", "prediction", "inputs", "inputs_hash",
+    ),
+    "Prediction_Decision": (
+        "decision_id", "prediction_id", "final_decision", "decision_source",
+        "decided_by", "decided_at",
+    ),
 }
 
 # PostgREST/Postgres codes for a missing table or column.
@@ -41,7 +56,7 @@ class DatabaseMigrationRequired(RuntimeError):
         self.database_message = message
         detail = (
             "Database setup is incomplete for the model-integrated forms. "
-            f"Run {MIGRATION_FILE} in the Supabase SQL Editor, then retry. "
+            f"Apply the SQL files in {MIGRATION_FILE} (in filename order), then retry. "
             f"Missing schema was detected for {table}."
         )
         if message:
@@ -65,11 +80,8 @@ def require_table_columns(
 
 def require_intake_schema(supabase: Client) -> None:
     """Verify everything required before creating a new patient intake."""
-    require_table_columns(
-        supabase,
-        "Accident_Record",
-        MODEL_INTEGRATION_SCHEMA["Accident_Record"],
-    )
+    for table in ("Accident_Record", "Injury_Description", "Model_Version", "Model_Prediction"):
+        require_table_columns(supabase, table, MODEL_INTEGRATION_SCHEMA[table])
 
 
 def get_model_integration_schema_status(supabase: Client) -> dict[str, Any]:
@@ -84,10 +96,11 @@ def get_model_integration_schema_status(supabase: Client) -> dict[str, Any]:
                 "ready": False,
                 "message": exc.database_message or str(exc),
             }
-        except Exception as exc:
+        except Exception:
+            logger.exception("Schema check failed for %s", table)
             tables[table] = {
                 "ready": False,
-                "message": f"Schema check failed: {exc}",
+                "message": "Schema check failed. The details are in the server log.",
             }
 
     return {

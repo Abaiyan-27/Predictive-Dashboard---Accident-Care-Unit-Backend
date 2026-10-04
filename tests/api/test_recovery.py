@@ -3,8 +3,9 @@ from fastapi import status
 from unittest.mock import MagicMock, patch
 
 class MockDBResult:
-    def __init__(self, data):
+    def __init__(self, data, count=None):
         self.data = data
+        self.count = len(data) if count is None and isinstance(data, list) else count
 
 def setup_mock_db_for_nurse(mock_supabase, role: str):
     """Helper to mock DB response for get_current_user."""
@@ -12,7 +13,7 @@ def setup_mock_db_for_nurse(mock_supabase, role: str):
         mock_table = MagicMock()
         if table_name == "User":
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "nurse-123", "role": role, "hospital_id": "hosp-123"}
+                {"user_id": "nurse-123", "role": role, "hospital_id": "00000000-0000-0000-0000-000000000002"}
             ])
         return mock_table
     mock_supabase.table.side_effect = table_side_effect
@@ -38,7 +39,7 @@ def test_rec_001_client_interruption_rollback(mock_require_schema, client, mock_
         if table_name == "User":
             mock_table = MagicMock()
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "hosp-123"}
+                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "00000000-0000-0000-0000-000000000002"}
             ])
             return mock_table
         elif table_name == "Patient":
@@ -83,13 +84,13 @@ def test_rec_002_and_003_network_interruption_and_rbac_recovery(mock_add_severit
         if table_name == "User":
             mock_table = MagicMock()
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "hosp-123"}
+                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "00000000-0000-0000-0000-000000000002"}
             ])
             return mock_table
         
         # All other queries fail because the network dropped
         mock_table = MagicMock()
-        mock_table.select.return_value.eq.return_value.order.return_value.execute.side_effect = Exception("Network Reset By Peer")
+        mock_table.select.return_value.eq.return_value.order.return_value.range.return_value.execute.side_effect = Exception("Network Reset By Peer")
         return mock_table
         
     mock_supabase.table.side_effect = broken_table_side_effect
@@ -104,7 +105,7 @@ def test_rec_002_and_003_network_interruption_and_rbac_recovery(mock_add_severit
     # PHASE 2: Simulate Database Restoration
     # -------------------------------------------------------------
     mock_accident_table = MagicMock()
-    mock_accident_table.select.return_value.eq.return_value.order.return_value.execute.return_value = MockDBResult(data=[
+    mock_accident_table.select.return_value.eq.return_value.order.return_value.range.return_value.execute.return_value = MockDBResult(data=[
         {"accident_id": "a-123", "created_by": "nurse-123"}
     ])
     mock_add_severity.return_value = [{"accident_id": "a-123"}]
@@ -113,7 +114,7 @@ def test_rec_002_and_003_network_interruption_and_rbac_recovery(mock_add_severit
         if table_name == "User":
             mock_table = MagicMock()
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "hosp-123"}
+                {"user_id": "nurse-123", "role": "nurse", "hospital_id": "00000000-0000-0000-0000-000000000002"}
             ])
             return mock_table
         elif table_name == "Accident_Record":

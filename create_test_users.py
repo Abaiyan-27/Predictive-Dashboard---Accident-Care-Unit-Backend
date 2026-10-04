@@ -1,11 +1,29 @@
-"""Idempotently provision demo logins in the configured Supabase project."""
+"""Idempotently provision test logins in a DEVELOPMENT Supabase project.
+
+Credentials come from TEST_*_EMAIL / TEST_*_PASSWORD (see demo_accounts.py and
+.env.test.example); nothing is hardcoded. Existing Auth accounts with these
+emails get their password reset, so the script refuses to run unless
+--confirm-host names the Supabase host it will change. Never run it against
+production.
+
+    python create_test_users.py --confirm-host <project-ref>.supabase.co
+"""
 from __future__ import annotations
 
+import argparse
 import os
 import sys
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from supabase import Client, create_client
+
+from demo_accounts import load_test_accounts
+
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument("--confirm-host", required=True,
+                    help="The host of SUPABASE_URL, typed out to confirm the target project")
+args = parser.parse_args()
 
 load_dotenv()
 url = os.environ.get("SUPABASE_URL")
@@ -14,39 +32,33 @@ key = os.environ.get("SUPABASE_KEY")
 if not url or not key:
     print("SUPABASE_URL or SUPABASE_KEY is missing in .env")
     sys.exit(1)
+if urlparse(url).hostname != args.confirm_host.strip():
+    sys.exit("--confirm-host does not match the host of SUPABASE_URL; nothing was changed.")
 
+credentials = load_test_accounts()
 supabase: Client = create_client(url, key)
-password = "DemoPass123!"
 
+# Staff test accounts join an existing hospital, named explicitly. The script
+# never creates hospitals (the network hospitals come from the migrations).
+hospital_name = os.environ.get("TEST_HOSPITAL_NAME")
+if not hospital_name:
+    sys.exit("TEST_HOSPITAL_NAME is not set: name the existing hospital the staff test accounts belong to.")
 hospital_result = (
     supabase.table("Hospital")
     .select("hospital_id")
-    .eq("name", "General Hospital Colombo")
+    .eq("name", hospital_name)
     .limit(1)
     .execute()
 )
-if hospital_result.data:
-    hospital_id = hospital_result.data[0]["hospital_id"]
-else:
-    hospital = supabase.table("Hospital").insert({
-        "name": "General Hospital Colombo",
-        "type": "Teaching",
-        "region": "Western",
-        "district": "Colombo",
-        "address": "Regent St, Colombo 00800",
-    }).execute()
-    hospital_id = hospital.data[0]["hospital_id"]
+if not hospital_result.data:
+    sys.exit(f"No hospital named {hospital_name!r}; nothing was changed.")
+hospital_id = hospital_result.data[0]["hospital_id"]
 
-accounts = [
-    ("nurse@accidentcare.org", "Demo Nurse", "nurse"),
-    ("doctor@accidentcare.org", "Demo Doctor", "doctor"),
-    ("admin@accidentcare.org", "Demo Administrator", "admin"),
-    ("gov@accidentcare.org", "Demo Government Officer", "government"),
-]
+accounts = [(item["email"], item["name"], role, item["password"]) for role, item in credentials.items()]
 
 auth_users = {user.email: user for user in supabase.auth.admin.list_users(per_page=1000)}
 
-for email, name, role in accounts:
+for email, name, role, password in accounts:
     auth_user = auth_users.get(email)
     if auth_user:
         supabase.auth.admin.update_user_by_id(auth_user.id, {
@@ -103,6 +115,6 @@ for email, name, role in accounts:
                 **values,
             }).execute()
 
-print("Demo accounts are ready. Password for all accounts: DemoPass123!")
-for email, _, role in accounts:
+print("Test accounts are ready (passwords are the TEST_*_PASSWORD values; not printed).")
+for email, _, role, _ in accounts:
     print(f"- {role}: {email}")

@@ -8,6 +8,5 @@
   "label_map": {
     "no": "No transfer",
     "yes": "Transfer"
-  },
-  "confidence_floor": 0.5
+  }
 }

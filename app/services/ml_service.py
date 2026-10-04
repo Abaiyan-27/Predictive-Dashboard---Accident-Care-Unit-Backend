@@ -6,7 +6,9 @@ explicitly; the service never substitutes demo or randomly generated values.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -14,6 +16,15 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier
+
+logger = logging.getLogger(__name__)
+
+from app.contracts.severity import (
+    SEVERITY_BORDERLINE,
+    SEVERITY_DEFER,
+    SEVERITY_HIGH,
+    SEVERITY_LOW,
+)
 
 
 LOCAL_MODEL_ROOT = Path(__file__).resolve().parent.parent / "ml_models"
@@ -36,6 +47,17 @@ TIME_MAPPING = {value: index for index, value in enumerate(TIME_ORDER)}
 
 COMPLETENESS_FLOOR = 0.40
 LOW_CONF_PROB = 0.60
+
+# Fields documented only after the doctor records treatment. The stay, transfer
+# and discharge notebooks were trained on records where these were filled in;
+# scoring at intake would let the imputer stand in for the inputs that carry
+# most of the signal, so these bundles refuse until they are recorded.
+POST_TREATMENT_INPUTS = ("Investigation Done", "Management Name 1")
+REQUIRED_INPUTS: dict[str, tuple[str, ...]] = {
+    "stay_duration": POST_TREATMENT_INPUTS,
+    "transfer": POST_TREATMENT_INPUTS,
+    "discharge": POST_TREATMENT_INPUTS + ("total_days",),
+}
 
 
 @dataclass
@@ -104,6 +126,25 @@ def _missing(value: Any) -> bool:
     return isinstance(value, float) and np.isnan(value)
 
 
+def _normalise_value(value: Any) -> Any:
+    """Apply the notebooks' text cleaning: strip, lowercase, blank/'nan'/'none' -> missing."""
+    if isinstance(value, str):
+        cleaned = value.strip().lower()
+        return None if cleaned in {"", "nan", "none"} else cleaned
+    return value
+
+
+def normalise_record(record: dict[str, Any]) -> dict[str, Any]:
+    return {key: _normalise_value(value) for key, value in record.items()}
+
+
+def missing_required_inputs(record: dict[str, Any], settings: dict[str, Any]) -> list[str]:
+    return [
+        feature for feature in settings.get("required_inputs") or []
+        if _missing(record.get(feature))
+    ]
+
+
 def _unavailable(model_name: str, version: Optional[str], message: str) -> ModelPrediction:
     return ModelPrediction(
         prediction=None,
@@ -121,6 +162,27 @@ def _unavailable(model_name: str, version: Optional[str], message: str) -> Model
 # ---------------------------------------------------------------------------
 # Severity-triage notebook bundle
 # ---------------------------------------------------------------------------
+
+def _severity_defer(
+    model_name: str,
+    version: Optional[str],
+    status: str,
+    message: str,
+    completeness: float = 0,
+) -> ModelPrediction:
+    """Severity always answers with a contract label; when it cannot score, it defers."""
+    return ModelPrediction(
+        prediction=SEVERITY_DEFER,
+        probability=None,
+        probabilities={},
+        completeness=round(completeness, 3),
+        status=status,
+        confidence_level=None,
+        model_name=model_name,
+        model_version=version,
+        message=message,
+    )
+
 
 _HIGH_RISK_REGIONS = {"head_face", "spine", "chest", "abdomen", "pelvis"}
 _NIGHT_WINDOWS = {"21:00 - 00:00", "00:00 - 03:00", "03:00 - 06:00"}
@@ -219,7 +281,12 @@ def predict_severity(
 ) -> ModelPrediction:
     contract, contract_error = _read_contract("severity")
     if contract_error or contract is None:
-        return _unavailable("severity_triage", None, contract_error or "Severity contract unavailable.")
+        return _severity_defer(
+            "severity_triage",
+            None,
+            "UNAVAILABLE",
+            contract_error or "Severity contract unavailable.",
+        )
 
     model_name = str(contract.get("name", "severity_triage"))
     version = str(contract.get("version")) if contract.get("version") else None
@@ -232,12 +299,14 @@ def predict_severity(
     }
     if record:
         supplied.update(record)
+    supplied = normalise_record(supplied)
 
     loaded, load_error = _load_bundle_model("severity", contract)
     if load_error or not isinstance(loaded, dict):
-        return _unavailable(
+        return _severity_defer(
             model_name,
             version,
+            "UNAVAILABLE",
             load_error or "Severity artifact is not a notebook bundle.",
         )
 
@@ -245,30 +314,28 @@ def predict_severity(
     features = list(loaded.get("features") or [])
     categorical = list(loaded.get("cat_features") or [])
     if not raw_inputs or not features or "model" not in loaded:
-        return _unavailable(model_name, version, "Severity notebook bundle is incomplete.")
+        return _severity_defer(
+            model_name, version, "UNAVAILABLE", "Severity notebook bundle is incomplete."
+        )
 
     raw_record = {feature: supplied.get(feature) for feature in raw_inputs}
     present_count = sum(not _missing(value) for value in raw_record.values())
     completeness = present_count / len(raw_inputs)
-    # Severity spec: fewer than ~4 of 12 raw fields → DEFER TO CLINICAL JUDGEMENT
-    # Raised from 2/12 to 4/12 so that Box 1 (name/age/gender only) does not
-    # trigger a prediction — the model needs actual accident details.
-    completeness_floor = float(loaded.get("completeness_floor", 4 / 12))
+    # The notebook measures this floor on validation data and stores it in the
+    # bundle (2 of 12 raw inputs for the deployed model). Completeness counts only
+    # values actually recorded; build_model_record no longer fills defaults.
+    completeness_floor = float(loaded.get("completeness_floor", 2 / 12))
 
     if completeness < completeness_floor:
-        return ModelPrediction(
-            prediction="DEFER TO CLINICAL JUDGEMENT",
-            probability=None,
-            probabilities={},
-            completeness=round(completeness, 3),
-            status="REFUSED",
-            confidence_level=None,
-            model_name=model_name,
-            model_version=version,
-            message=(
+        return _severity_defer(
+            model_name,
+            version,
+            "REFUSED",
+            (
                 f"Only {present_count} of {len(raw_inputs)} triage details "
                 f"are available. Defer to clinical judgement."
             ),
+            completeness,
         )
 
     try:
@@ -293,28 +360,26 @@ def predict_severity(
         low_cut = float(loaded.get("low_cut", 0.08))
         high_cut = float(loaded.get("high_cut", 0.32))
         if positive_probability >= high_cut:
-            prediction = "HIGH"
+            prediction = SEVERITY_HIGH
             status = "OK"
             confidence_level = "high"
         elif positive_probability < low_cut:
-            prediction = "LOW"
+            prediction = SEVERITY_LOW
             status = "OK"
             confidence_level = "high"
         else:
-            prediction = "BORDERLINE"
+            prediction = SEVERITY_BORDERLINE
             status = "LOW_CONFIDENCE"
             confidence_level = "low"
-    except Exception as exc:
-        return ModelPrediction(
-            prediction=None,
-            probability=None,
-            probabilities={},
-            completeness=round(completeness, 3),
-            status="ERROR",
-            confidence_level=None,
-            model_name=model_name,
-            model_version=version,
-            message=f"Severity inference failed: {exc}",
+    except Exception:
+        # Details go to the server log; the stored message is shown to staff.
+        logger.exception("Severity inference failed")
+        return _severity_defer(
+            model_name,
+            version,
+            "ERROR",
+            "Severity inference failed. The details are in the server log.",
+            completeness,
         )
 
     return ModelPrediction(
@@ -331,6 +396,49 @@ def predict_severity(
             f"triage zone: {prediction}."
         ),
     )
+
+
+def severity_readiness(record: dict[str, Any]) -> dict[str, Any]:
+    """Say whether predict_severity would score this record, without running the model.
+
+    Applies the same rule predict_severity uses before inference: the share of
+    the bundle's raw inputs actually recorded must reach the bundle's
+    completeness floor. When the bundle cannot be read, ``available`` is False
+    and ``ready`` stays True so that a run reports the failure (a DEFER with
+    status UNAVAILABLE) instead of silently waiting forever.
+    """
+    contract, contract_error = _read_contract("severity")
+    loaded, load_error = (
+        _load_bundle_model("severity", contract) if contract else (None, contract_error)
+    )
+    raw_inputs = list(loaded.get("raw_inputs") or []) if isinstance(loaded, dict) else []
+    if load_error or not raw_inputs:
+        return {
+            "available": False,
+            "ready": True,
+            "raw_inputs": [],
+            "present": [],
+            "missing": [],
+            "minimum": None,
+            "message": load_error or "Severity notebook bundle is incomplete.",
+        }
+
+    supplied = normalise_record(record)
+    present = [feature for feature in raw_inputs if not _missing(supplied.get(feature))]
+    floor = float(loaded.get("completeness_floor", 2 / 12))
+    minimum = next(
+        (count for count in range(len(raw_inputs) + 1) if count / len(raw_inputs) >= floor),
+        len(raw_inputs),
+    )
+    return {
+        "available": True,
+        "ready": len(present) >= minimum,
+        "raw_inputs": raw_inputs,
+        "present": present,
+        "missing": [feature for feature in raw_inputs if feature not in present],
+        "minimum": minimum,
+        "message": None,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -355,12 +463,14 @@ def sync_models_from_huggingface(
     *,
     token: Optional[str] = None,
     cache_dir: Optional[str] = None,
+    revision: Optional[str] = None,
 ) -> tuple[bool, str]:
     """Download a Hub model bundle, then execute it from the local cache.
 
     A failed or absent Hub configuration deliberately leaves the packaged local
     model bundle active, so a temporary Hub outage never prevents the API from
-    starting when local artifacts are available.
+    starting when local artifacts are available. ``revision`` (a commit hash
+    or tag) pins the download so every start runs the same artifacts.
     """
     global MODEL_ROOT, MODEL_SOURCE
 
@@ -378,9 +488,11 @@ def sync_models_from_huggingface(
             repo_type="model",
             token=token or None,
             local_dir=cache_dir or "/tmp/accident-care-models",
+            revision=revision or None,
         )
     except Exception as exc:
-        return False, f"Could not download Hugging Face model bundle; using local bundle: {exc}"
+        logger.warning("Hugging Face download failed: %s: %s", type(exc).__name__, exc)
+        return False, "Could not download the Hugging Face model bundle; using the local bundle."
 
     downloaded_root = Path(downloaded_path)
     if not (downloaded_root / "severity").exists():
@@ -390,19 +502,22 @@ def sync_models_from_huggingface(
         )
 
     MODEL_ROOT = downloaded_root
-    MODEL_SOURCE = f"Hugging Face model repository: {repo_id}"
+    MODEL_SOURCE = f"Hugging Face model repository: {repo_id}" + (f"@{revision}" if revision else "")
     _bundle_cache.clear()
-    return True, f"Loaded model bundle from Hugging Face repository {repo_id}."
+    return True, f"Loaded model bundle from Hugging Face repository {repo_id}" + (
+        f" at revision {revision}." if revision else " (latest revision; set HF_MODEL_REVISION to pin it).")
 
 
 def _read_contract(bundle_name: str) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     contract_path = MODEL_ROOT / bundle_name / "model_contract.json"
     if not contract_path.exists():
-        return None, f"Contract is missing: {contract_path}"
+        # Messages name files relative to the model root: they reach API clients.
+        return None, f"Contract is missing: {bundle_name}/model_contract.json"
     try:
         return json.loads(contract_path.read_text(encoding="utf-8")), None
     except (OSError, json.JSONDecodeError) as exc:
-        return None, f"Could not read {contract_path.name}: {exc}"
+        logger.warning("Could not read %s/%s: %s", bundle_name, contract_path.name, exc)
+        return None, f"Could not read {bundle_name}/{contract_path.name}."
 
 
 def _load_bundle_model(bundle_name: str, contract: dict[str, Any]) -> tuple[Optional[Any], Optional[str]]:
@@ -411,7 +526,7 @@ def _load_bundle_model(bundle_name: str, contract: dict[str, Any]) -> tuple[Opti
         return None, "The model contract does not name an artifact."
     artifact_path = MODEL_ROOT / bundle_name / str(artifact_name)
     if not artifact_path.exists():
-        return None, f"Artifact is not installed: {artifact_path}"
+        return None, f"Artifact is not installed: {bundle_name}/{artifact_name}"
 
     modified = artifact_path.stat().st_mtime
     cached = _bundle_cache.get(str(artifact_path))
@@ -430,7 +545,8 @@ def _load_bundle_model(bundle_name: str, contract: dict[str, Any]) -> tuple[Opti
         else:
             return None, f"Unsupported classification artifact format: {artifact_format}"
     except Exception as exc:
-        return None, f"Could not load {artifact_path.name}: {exc}"
+        logger.warning("Could not load %s/%s: %s", bundle_name, artifact_path.name, exc)
+        return None, f"Could not load {bundle_name}/{artifact_path.name}."
 
     _bundle_cache[str(artifact_path)] = (modified, model)
     return model, None
@@ -441,13 +557,16 @@ def _bundle_settings(
     contract: dict[str, Any],
 ) -> tuple[Optional[dict[str, Any]], Optional[str]]:
     settings = dict(contract)
+    settings["required_inputs"] = list(
+        contract.get("required_inputs") or REQUIRED_INPUTS.get(bundle_name, ())
+    )
     metadata_name = contract.get("metadata_artifact")
     if not metadata_name:
         return settings, None
 
     metadata_path = MODEL_ROOT / bundle_name / str(metadata_name)
     if not metadata_path.exists():
-        return None, f"Metadata artifact is not installed: {metadata_path}"
+        return None, f"Metadata artifact is not installed: {bundle_name}/{metadata_name}"
 
     modified = metadata_path.stat().st_mtime
     cached = _bundle_cache.get(str(metadata_path))
@@ -459,7 +578,8 @@ def _bundle_settings(
 
             metadata = joblib.load(metadata_path)
         except Exception as exc:
-            return None, f"Could not load {metadata_path.name}: {exc}"
+            logger.warning("Could not load %s/%s: %s", bundle_name, metadata_path.name, exc)
+            return None, f"Could not load {bundle_name}/{metadata_path.name}."
         _bundle_cache[str(metadata_path)] = (modified, metadata)
 
     if not isinstance(metadata, dict):
@@ -501,8 +621,14 @@ def _prepare_bundle_row(
     if not features:
         return None, 0, "The model contract has no features."
 
+    record = normalise_record(record)
     raw = {feature: record.get(feature) for feature in features}
     completeness = sum(not _missing(value) for value in raw.values()) / len(features)
+    awaiting = missing_required_inputs(record, settings)
+    if awaiting:
+        return None, completeness, (
+            "Waiting for post-treatment inputs: " + ", ".join(awaiting) + "."
+        )
     floor = float(settings.get("completeness_floor", COMPLETENESS_FLOOR))
     if completeness < floor:
         return None, completeness, "Not enough information to run this model."
@@ -538,6 +664,46 @@ def _prepare_bundle_row(
                 row[feature] = row[feature].astype(object).where(row[feature].notna(), np.nan)
 
     return row, completeness, None
+
+
+def bundle_readiness(bundle_name: str, record: dict[str, Any]) -> dict[str, Any]:
+    """Say whether predict_bundle would score this record, without running the model.
+
+    Applies the same two checks as _prepare_bundle_row: every required
+    (post-treatment) input is recorded, and the share of recorded features
+    reaches the bundle's completeness floor. When the bundle cannot be read,
+    ``available`` is False and ``ready`` stays True so a run reports the failure.
+    """
+    contract, contract_error = _read_contract(bundle_name)
+    settings, settings_error = (
+        _bundle_settings(bundle_name, contract) if contract else (None, contract_error)
+    )
+    features = list((settings or {}).get("features") or [])
+    if settings_error or settings is None or not features:
+        return {
+            "available": False,
+            "ready": True,
+            "missing_required": [],
+            "missing_features": [],
+            "completeness": None,
+            "minimum_completeness": None,
+            "message": settings_error or "The model contract has no features.",
+        }
+
+    supplied = normalise_record(record)
+    missing_features = [feature for feature in features if _missing(supplied.get(feature))]
+    completeness = (len(features) - len(missing_features)) / len(features)
+    missing_required = missing_required_inputs(supplied, settings)
+    floor = float(settings.get("completeness_floor", COMPLETENESS_FLOOR))
+    return {
+        "available": True,
+        "ready": not missing_required and completeness >= floor,
+        "missing_required": missing_required,
+        "missing_features": missing_features,
+        "completeness": round(completeness, 3),
+        "minimum_completeness": round(floor, 3),
+        "message": None,
+    }
 
 
 def predict_bundle(bundle_name: str, record: dict[str, Any]) -> ModelPrediction:
@@ -583,7 +749,8 @@ def predict_bundle(bundle_name: str, record: dict[str, Any]) -> ModelPrediction:
 
         positive_class = settings.get("positive_class")
         threshold = settings.get("decision_threshold")
-        if positive_class is not None and threshold is not None:
+        threshold_mode = positive_class is not None and threshold is not None
+        if threshold_mode:
             positive_index = next(
                 index for index, value in enumerate(raw_classes)
                 if str(value) == str(positive_class)
@@ -596,7 +763,8 @@ def predict_bundle(bundle_name: str, record: dict[str, Any]) -> ModelPrediction:
 
         prediction = display_classes[selected_index]
         probability = float(raw_probabilities[selected_index])
-    except Exception as exc:
+    except Exception:
+        logger.exception("%s inference failed", model_name)
         return ModelPrediction(
             prediction=None,
             probability=None,
@@ -606,7 +774,27 @@ def predict_bundle(bundle_name: str, record: dict[str, Any]) -> ModelPrediction:
             confidence_level=None,
             model_name=model_name,
             model_version=version,
-            message=f"Inference failed: {exc}",
+            message="Inference failed. The details are in the server log.",
+        )
+
+    if threshold_mode:
+        # Mirrors the transfer notebook: the reported probability is the event
+        # probability, the label comes from the tuned threshold, and the
+        # notebook defines no low-confidence band for this decision rule.
+        positive_label = display_classes[positive_index]
+        return ModelPrediction(
+            prediction=prediction,
+            probability=round(positive_probability, 4),
+            probabilities=probabilities,
+            completeness=round(completeness, 3),
+            status="OK",
+            confidence_level=None,
+            model_name=model_name,
+            model_version=version,
+            message=(
+                f"{positive_probability:.0%} estimated probability of {positive_label.lower()}; "
+                f"labelled {positive_label.lower()} at {float(threshold):.0%} or higher."
+            ),
         )
 
     confidence_floor = float(settings.get("confidence_floor", LOW_CONF_PROB))
@@ -688,7 +876,7 @@ def predict_accident_forecast(horizon: int = 6) -> ForecastPrediction:
             model_name=model_name,
             model_version=version,
             points=[],
-            message=f"Forecast artifact is not installed: {artifact_path}",
+            message=f"Forecast artifact is not installed: forecasting/{artifact_name}",
         )
 
     artifact_format = str(contract.get("format", "statsmodels")).lower()
@@ -804,13 +992,14 @@ def predict_accident_forecast(horizon: int = 6) -> ForecastPrediction:
                 lower_bound=round(max(0.0, float(interval[0])), 1) if len(interval) >= 2 else None,
                 upper_bound=round(max(0.0, float(interval[1])), 1) if len(interval) >= 2 else None,
             ))
-    except Exception as exc:
+    except Exception:
+        logger.exception("Forecast inference failed")
         return ForecastPrediction(
             status="ERROR",
             model_name=model_name,
             model_version=version,
             points=[],
-            message=f"Forecast inference failed: {exc}",
+            message="Forecast inference failed. The details are in the server log.",
         )
 
     return ForecastPrediction(
@@ -819,6 +1008,73 @@ def predict_accident_forecast(horizon: int = 6) -> ForecastPrediction:
         model_version=version,
         points=points,
     )
+
+
+# ---------------------------------------------------------------------------
+# Version identity and input fields (used to persist predictions)
+# ---------------------------------------------------------------------------
+
+_file_digest_cache: dict[str, tuple[float, int, str]] = {}
+
+
+def _file_sha256(path: Path) -> str:
+    stat = path.stat()
+    cached = _file_digest_cache.get(str(path))
+    if cached and cached[0] == stat.st_mtime and cached[1] == stat.st_size:
+        return cached[2]
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    _file_digest_cache[str(path)] = (stat.st_mtime, stat.st_size, digest.hexdigest())
+    return digest.hexdigest()
+
+
+def model_fingerprint(bundle_name: str) -> Optional[dict[str, Any]]:
+    """Identify the exact model a prediction came from.
+
+    The fingerprint is a SHA-256 over the model contract, the artifact and
+    metadata files, and this module's input gate for the bundle, so any change
+    to what produces a prediction yields a new identity. The contract's own
+    "version" string is kept alongside but is not unique per artifact.
+    """
+    contract, error = _read_contract(bundle_name)
+    if error or contract is None:
+        return None
+    digest = hashlib.sha256()
+    digest.update(json.dumps(contract, sort_keys=True).encode("utf-8"))
+    digest.update(json.dumps(list(REQUIRED_INPUTS.get(bundle_name, ()))).encode("utf-8"))
+    for key in ("artifact", "metadata_artifact"):
+        name = contract.get(key)
+        if not name:
+            continue
+        path = MODEL_ROOT / bundle_name / str(name)
+        digest.update(f"{key}={name}:".encode("utf-8"))
+        digest.update((_file_sha256(path) if path.exists() else "missing").encode("utf-8"))
+    return {
+        "model_key": bundle_name,
+        "fingerprint": digest.hexdigest(),
+        "contract_name": contract.get("name"),
+        "contract_version": contract.get("version"),
+        "artifact_name": str(contract.get("artifact") or "unknown"),
+        "source": MODEL_SOURCE,
+    }
+
+
+def model_input_fields(bundle_name: str) -> Optional[list[str]]:
+    """Return the raw input fields a model reads, or None if it cannot be loaded."""
+    contract, error = _read_contract(bundle_name)
+    if error or contract is None:
+        return None
+    if bundle_name == "severity":
+        loaded, load_error = _load_bundle_model(bundle_name, contract)
+        if load_error or not isinstance(loaded, dict):
+            return None
+        return list(loaded.get("raw_inputs") or [])
+    settings, settings_error = _bundle_settings(bundle_name, contract)
+    if settings_error or settings is None:
+        return None
+    return list(settings.get("features") or [])
 
 
 def get_model_status() -> dict[str, dict[str, Any]]:
@@ -842,13 +1098,18 @@ def get_model_status() -> dict[str, dict[str, Any]]:
                     load_error = "Severity artifact is not a notebook bundle."
                 if not load_error:
                     _, load_error = _bundle_settings(bundle_name, contract)
+        if error or load_error:
+            logger.warning("Model bundle %s not ready: %s", bundle_name, error or load_error)
+        # Public health output: readiness only, no file system paths or error internals.
         status[bundle_name] = {
             "available": available,
             "loadable": available and load_error is None,
-            "artifact": str(artifact) if artifact else None,
+            "artifact": artifact.name if artifact else None,
             "version": contract.get("version") if contract else None,
-            "message": error if error else (
-                load_error if load_error else (None if available else "Artifact not installed.")
+            "message": (
+                "Model contract could not be read." if error
+                else "Artifact could not be loaded." if load_error
+                else None if available else "Artifact not installed."
             ),
         }
     return status

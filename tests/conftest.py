@@ -4,10 +4,12 @@ from fastapi.testclient import TestClient
 from datetime import datetime, timedelta, timezone
 
 import os
+from jose import jwt as _jwt
 os.environ["SECRET_KEY"] = "test-secret-key-that-is-at-least-32-chars-long"
 os.environ["ALGORITHM"] = "HS256"
 os.environ["SUPABASE_URL"] = "http://localhost:8000"
-os.environ["SUPABASE_KEY"] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.fake-signature-for-testing-mock"
+# A JWT-shaped placeholder (the Supabase client checks the shape); never a real key.
+os.environ["SUPABASE_KEY"] = _jwt.encode({"role": "service_role"}, "unit-tests-only")
 
 from app.main import app
 from app.db.session import get_supabase, get_auth_supabase

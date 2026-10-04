@@ -1,11 +1,28 @@
-"""Nurse router — patient intake and personal patient list."""
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Nurse router — patient intake and the hospital's patient list.
+
+Saving intake details never runs a model. The nurse runs Severity explicitly
+(app/api/severity.py); nurses never run the stay, transfer or discharge models.
+"""
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from postgrest.exceptions import APIError
 from supabase import Client
 
-from app.api.deps import get_current_user, require_nurse
+from app.api.deps import Page, page_params, require_nurse, require_staff
+from app.core.authorization import (
+    NURSE,
+    Principal,
+    ensure_own_hospital_id,
+    filter_predictions,
+    load_accident,
+    load_transfer,
+)
 from app.db.session import get_supabase
 from app.schemas.accident import FullIntakeForm, UpdateIntakeForm
-from app.services import audit_service, patient_service, schema_service
+from app.schemas.transfer import ProcessTransferPayload, TransferOut
+from app.services import audit_service, patient_service, schema_service, severity_workflow, transfer_service
+from app.services.severity_workflow import ACCIDENT_SELECT, EMBEDDED_KEYS
 
 router = APIRouter(prefix="/patients", tags=["Nurse / Patients"])
 
@@ -14,12 +31,12 @@ router = APIRouter(prefix="/patients", tags=["Nurse / Patients"])
 def create_patient_intake(
     form: FullIntakeForm,
     supabase: Client = Depends(get_supabase),
-    current_user: dict = Depends(require_nurse),
+    current_user: Principal = Depends(require_nurse),
 ):
     """
-    Nurse submits full intake form.
-    Creates Patient, Accident_Record, Injury_Description(s), Hospital_Patient records,
-    and runs ML severity prediction automatically.
+    Nurse submits the intake form (basic details at minimum).
+    Creates Patient, Accident_Record, Injury_Description(s) and Hospital_Patient
+    records. No model is run; the response carries the Severity workflow state.
     """
     # Verify the expanded Supabase schema before creating Patient. This prevents
     # a failed Accident_Record insert from leaving an orphan patient behind.
@@ -30,6 +47,10 @@ def create_patient_intake(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
         ) from exc
+
+    # The episode belongs to the nurse's own hospital, taken from their account;
+    # a different hospital_id in the request is refused before anything is written.
+    hospital_id = ensure_own_hospital_id(current_user, form.hospital_id)
 
     # 1. Create Patient
     patient_data = {
@@ -44,12 +65,11 @@ def create_patient_intake(
     patient_id = patient["patient_id"]
 
     # 2. Create Accident Record (including ML feature columns)
-    hospital_id = form.hospital_id or current_user.get("hospital_id")
     accident_data = {
         "patient_id": patient_id,
-        "hospital_id": str(hospital_id) if hospital_id else None,
-        "first_hospital_id": str(form.first_hospital_id) if form.first_hospital_id else (str(hospital_id) if hospital_id else None),
-        "created_by": current_user.get("user_id"),
+        "hospital_id": str(hospital_id),
+        "first_hospital_id": str(form.first_hospital_id or hospital_id),
+        "created_by": current_user.id,
         "vehicle_type": form.vehicle_type,
         "helmet_worn": form.helmet_worn,
         "road_type": form.road_type,
@@ -93,6 +113,7 @@ def create_patient_intake(
         for injury in form.injuries:
             injury_data = {
                 "accident_id": accident_id,
+                "injury_order": injury.injury_order,
                 "site_of_injury": injury.site_of_injury,
                 "type_of_injury": injury.type_of_injury,
             }
@@ -101,57 +122,103 @@ def create_patient_intake(
                 injuries_created.append(injury_result.data[0])
 
     # 4. Create Hospital_Patient tracking record
-    if hospital_id:
-        supabase.table("Hospital_Patient").insert({
-            "accident_id": accident_id,
-            "hospital_id": str(hospital_id),
-        }).execute()
+    supabase.table("Hospital_Patient").insert({
+        "accident_id": accident_id,
+        "hospital_id": str(hospital_id),
+    }).execute()
 
     # 5. Audit log
     audit_service.log_action(
         supabase,
-        actor_id=current_user.get("user_id"),
-        role=current_user.get("role"),
+        actor_id=current_user.id,
+        role=current_user.role,
         action_type="patient_intake",
         hospital_id=hospital_id,
         accident_id=accident_id,
     )
 
-    # 6. Run every intake-time model whose artifact is installed. Missing
-    # artifacts return UNAVAILABLE and never fall back to invented numbers.
-    enriched_accident = patient_service.add_patient_predictions({
-        **accident,
-        "Patient": patient,
-        "Injury_Description": injuries_created,
-    })
+    # 6. A new episode has no predictions yet; Severity runs when the nurse asks.
+    severity = severity_workflow.episode_status(
+        {**accident, "Patient": patient, "Injury_Description": injuries_created, "Treatment": []},
+        [],
+        {},
+        role=current_user.role,
+    )
     return {
         "patient": patient,
         "accident_record": accident,
-        "injuries": injuries_created,
-        "severity_prediction": enriched_accident["severity_prediction"],
-        "stay_duration_prediction": enriched_accident["stay_duration_prediction"],
-        "transfer_prediction": enriched_accident["transfer_prediction"],
+        "injuries": patient_service.order_injuries(injuries_created),
+        "severity": severity,
     }
 
 
 @router.patch("/intake/{accident_id}")
 def update_patient_intake(
-    accident_id: str,
+    accident_id: UUID,
     form: UpdateIntakeForm,
     supabase: Client = Depends(get_supabase),
-    current_user: dict = Depends(require_nurse),
+    current_user: Principal = Depends(require_nurse),
 ):
     """
     Nurse progressively updates an intake form.
-    Updates Patient, Accident_Record, and Injury_Description(s).
+    Updates Patient, Accident_Record, and Injury_Description(s). No model is run.
+
+    Basic details stay editable. Severity inputs are locked once the Severity
+    decision is recorded, and inputs read only by the doctor models are locked
+    once treatment is recorded; changing a locked field is refused with 409
+    before anything is written.
     """
-    # 1. Get existing Accident Record to find patient_id
-    accident_res = supabase.table("Accident_Record").select("*").eq("accident_id", accident_id).execute()
-    if not accident_res.data:
-        raise HTTPException(status_code=404, detail="Accident record not found.")
-    accident = accident_res.data[0]
+    # 1. Load the episode; one held by another hospital is "not found".
+    accident = load_accident(supabase, current_user, accident_id, select=ACCIDENT_SELECT)
+    accident_id = str(accident_id)
     patient_id = accident["patient_id"]
 
+    severity = severity_workflow.load_status(supabase, accident, role=current_user.role)
+    locked = severity_workflow.lock_violations(form, accident, severity)
+    if locked:
+        reasons = []
+        if severity["locks"]["severity_inputs"]:
+            reasons.append("Severity inputs are locked after the Severity decision")
+        if severity["locks"]["later_model_inputs"]:
+            reasons.append("inputs for the doctor's models are locked after treatment is recorded")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"These fields cannot be changed: {', '.join(locked)}. {'; '.join(reasons)}.",
+        )
+    for key in EMBEDDED_KEYS:
+        accident.pop(key, None)
+    try:
+        patient, accident = _write_intake_update(supabase, form, accident, accident_id, patient_id)
+    except APIError as exc:
+        # The database re-checks the locks; a decision or treatment saved
+        # since the check above (a concurrent request) makes them apply now.
+        if exc.code == "23514":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail=f"These fields cannot be changed: {exc.message}.") from exc
+        raise
+    injuries_res = (
+        supabase.table("Injury_Description")
+        .select("*")
+        .eq("accident_id", accident_id)
+        .order("injury_order")
+        .execute()
+    )
+    injuries = patient_service.order_injuries(injuries_res.data or [])
+
+    # 5. No model runs on save. Report the Severity state for the saved values
+    # (an earlier prediction is marked stale if its inputs have changed).
+    saved = load_accident(supabase, current_user, accident_id, select=ACCIDENT_SELECT)
+    severity = severity_workflow.load_status(supabase, saved, role=current_user.role)
+    return {
+        "patient": patient,
+        "accident_record": accident,
+        "injuries": injuries,
+        "severity": severity,
+    }
+
+
+def _write_intake_update(supabase: Client, form: UpdateIntakeForm, accident: dict, accident_id: str, patient_id) -> tuple[dict, dict]:
+    """Write the Patient, Accident_Record and injury changes of an intake update."""
     # 2. Update Patient
     patient_data = {}
     if form.full_name is not None: patient_data["full_name"] = form.full_name
@@ -193,54 +260,118 @@ def update_patient_intake(
         if accident_res.data:
             accident = accident_res.data[0]
 
-    # 4. Update Injuries (simplest way is delete and recreate if provided)
-    injuries_created = []
-    if form.injuries is not None and len(form.injuries) > 0:
-        supabase.table("Injury_Description").delete().eq("accident_id", accident_id).execute()
-        for injury in form.injuries:
-            injury_data = {
-                "accident_id": accident_id,
-                "site_of_injury": injury.site_of_injury,
-                "type_of_injury": injury.type_of_injury,
-            }
-            injury_result = supabase.table("Injury_Description").insert(injury_data).execute()
-            if injury_result.data:
-                injuries_created.append(injury_result.data[0])
-    else:
-        injuries_res = supabase.table("Injury_Description").select("*").eq("accident_id", accident_id).execute()
-        injuries_created = injuries_res.data or []
-
-    # 5. Run severity prediction automatically
-    enriched_accident = patient_service.add_patient_predictions({
-        **accident,
-        "Patient": patient,
-        "Injury_Description": injuries_created,
-    })
-    
-    return {
-        "patient": patient,
-        "accident_record": accident,
-        "injuries": injuries_created,
-        "severity_prediction": enriched_accident["severity_prediction"],
-        "stay_duration_prediction": enriched_accident["stay_duration_prediction"],
-        "transfer_prediction": enriched_accident["transfer_prediction"],
-    }
+    # 4. Update injuries in place, slot by slot. Each injury keeps its
+    # injury_order (1 = primary, 2 = secondary) and its row id, so an edit can
+    # never swap them. A slot missing from a non-empty list is removed; an
+    # empty list leaves the injuries unchanged, as before.
+    if form.injuries:
+        supabase.table("Injury_Description").upsert(
+            [
+                {
+                    "accident_id": accident_id,
+                    "injury_order": injury.injury_order,
+                    "site_of_injury": injury.site_of_injury,
+                    "type_of_injury": injury.type_of_injury,
+                }
+                for injury in form.injuries
+            ],
+            on_conflict="accident_id,injury_order",
+        ).execute()
+        kept = sorted(injury.injury_order for injury in form.injuries)
+        supabase.table("Injury_Description").delete().eq("accident_id", accident_id).not_.in_(
+            "injury_order", kept
+        ).execute()
+    return patient, accident
 
 
 @router.get("/my", response_model=list[dict])
 def get_my_patients(
+    response: Response,
+    page: Page = Depends(page_params),
     supabase: Client = Depends(get_supabase),
-    current_user: dict = Depends(get_current_user),
+    current_user: Principal = Depends(require_staff),
 ):
-    """Return accident records created by the authenticated nurse, with patient info."""
-    user_id = current_user.get("user_id") or current_user.get("officer_id")
+    """Return the latest accident records of the caller's hospital, whoever registered them.
 
-    result = (
+    Each record carries ``severity_workflow``: the stored Severity prediction,
+    the decision on it and the input/lock state. Nurses get only that; other
+    staff also keep the display-only model outputs computed on read.
+    """
+    result = page.apply(
         supabase.table("Accident_Record")
-        .select("*, Patient(*), Injury_Description(*), Treatment(*), Transfer(*)")
-        .eq("created_by", str(user_id))
+        .select("*, Patient(*), Injury_Description(*), Treatment(*), Transfer(*)", count="exact")
+        .eq("hospital_id", current_user.hospital_id)
         .order("created_at", desc=True)
-        .limit(50)
+    ).execute()
+    Page.report_total(response, result.count)
+    accidents = result.data or []
+    workflows = severity_workflow.statuses_for(supabase, accidents, role=current_user.role)
+    if current_user.role != NURSE:
+        accidents = patient_service.add_severity_predictions(accidents)
+    else:
+        for accident in accidents:
+            accident["Injury_Description"] = patient_service.order_injuries(accident.get("Injury_Description"))
+    for accident in accidents:
+        accident["severity_workflow"] = workflows[str(accident["accident_id"])]
+    return [filter_predictions(current_user, accident) for accident in accidents]
+
+
+# ── Transfer requests (operational; not model predictions or decisions) ──────
+
+@router.get("/transfer-requests", response_model=list[TransferOut])
+def get_transfer_requests(
+    supabase: Client = Depends(get_supabase),
+    current_user: Principal = Depends(require_nurse),
+):
+    """Transfer requests sent from the nurse's hospital: open ones first, then the latest closed.
+
+    Every nurse of the sending hospital sees them, whoever registered the patient.
+    """
+    rows = (
+        supabase.table("Transfer")
+        .select("*")
+        .eq("from_hospital_id", current_user.hospital_id)
+        .order("requested_at", desc=True)
+        .limit(100)
         .execute()
+        .data
+        or []
     )
-    return patient_service.add_severity_predictions(result.data or [])
+    open_rows = [row for row in rows if row.get("status") in transfer_service.OPEN_STATUSES]
+    closed_rows = [row for row in rows if row.get("status") not in transfer_service.OPEN_STATUSES][:20]
+    return transfer_service.enrich(supabase, open_rows + closed_rows, current_user)
+
+
+@router.post("/transfer-requests/{transfer_id}/process", response_model=TransferOut)
+def process_transfer_request(
+    transfer_id: UUID,
+    body: ProcessTransferPayload,
+    supabase: Client = Depends(get_supabase),
+    current_user: Principal = Depends(require_nurse),
+):
+    """Record whether an authorized transfer physically happened.
+
+    "transferred" completes it: the destination becomes the episode's hospital
+    and a new hospital stay starts. "not_transferred" closes it as rejected with
+    the nurse's note. Either way the nurse is recorded as the processor.
+    """
+    if body.outcome == "transferred" and body.state_of_transfer not in transfer_service.TRANSFER_STATES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="state_of_transfer must be one of: " + "; ".join(transfer_service.TRANSFER_STATES),
+        )
+    transfer = transfer_service.enrich(supabase, [load_transfer(supabase, current_user, transfer_id)])[0]
+    return transfer_service.transition(
+        supabase,
+        current_user,
+        transfer,
+        "complete" if body.outcome == "transferred" else "not_transferred",
+        note=(body.note or "").strip() or None,
+        state_of_transfer=body.state_of_transfer if body.outcome == "transferred" else None,
+    )
+
+
+@router.get("/transfer-states")
+def get_transfer_states(current_user: Principal = Depends(require_nurse)):
+    """How a patient can be moved, as recorded when completing a transfer."""
+    return list(transfer_service.TRANSFER_STATES)

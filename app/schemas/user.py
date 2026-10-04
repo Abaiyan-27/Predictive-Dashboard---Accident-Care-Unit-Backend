@@ -22,7 +22,15 @@ class UserOut(BaseModel):
 class CreateUserPayload(BaseModel):
     name: str
     email: EmailStr
-    password: str = Field(min_length=8)
+    # Omit to have a temporary password generated. Either way the new user must
+    # replace it at first sign-in.
+    password: Optional[str] = Field(default=None, min_length=8)
     nic: Optional[str] = None
     role: StaffRole
     hospital_id: Optional[UUID] = None
+
+
+class CreatedUserOut(UserOut):
+    # Shown once to the creating admin when generated; never stored by the API.
+    temporary_password: Optional[str] = None
+    must_change_password: bool = True

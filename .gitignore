@@ -34,10 +34,11 @@ ENV/
 env.bak/
 venv.bak/
 
-# Environment Variables & Secrets
+# Environment Variables & Secrets (only the *.example templates are tracked)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.test.example
 *.pem
 
 # Database files
@@ -74,3 +75,10 @@ htmlcov/
 # Antigravity IDE / Agent artifacts
 .gemini/
 .agents/
+
+# Session tokens written by fetch_tokens.py (load testing). Never commit.
+tokens.json
+
+# Generated test output
+test-results/
+playwright-report/
