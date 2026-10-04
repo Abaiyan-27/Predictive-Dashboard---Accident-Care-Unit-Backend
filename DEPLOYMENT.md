@@ -184,6 +184,12 @@ Then, in the frontend repository, put the same `TEST_*` values in its `.env.test
 VITE_API_URL=/api npx playwright test
 ```
 
+If your own backend or dev server is already running on port 8000 or 5173,
+start the stack with `--port 8001` and run
+`PLAYWRIGHT_PORT=5174 DEV_API_PROXY_TARGET=http://localhost:8001 VITE_API_URL=/api npx playwright test`.
+The stack refuses to start on a busy port; without these overrides Playwright
+would reuse your dev server, whose `/api` proxy points at your own backend.
+
 Without the `TEST_*` variables, the live-backend specs fail at once with an explanation; the other specs run offline.
 
 **Frontend checks:** `npx tsc -b`, `npm run lint`, `npm run build`.
@@ -227,7 +233,7 @@ Without the `TEST_*` variables, the live-backend specs fail at once with an expl
 **After deploying**
 - [ ] `GET /health`, then `/health/models` (all `loadable`), then `/health/database-schema` (`ready: true`).
 - [ ] `/docs` returns 404 in production.
-- [ ] Sign in with each role using real, non-demo accounts.
+- [ ] Sign in with each role using real, non-demo accounts. Government officers see only Forecast and Association Rules.
 
 ## 10. Known limitations, unchanged by design
 
@@ -237,5 +243,4 @@ Without the `TEST_*` variables, the live-backend specs fail at once with an expl
 - **Sign-in matches by email.** The profile is linked by email, not by the Supabase Auth user id.
 - **Age is shared.** Age belongs to the patient, so all their episodes share it.
 - **Treatment days are summed.** Multiple treatment rows add up their days (per-ward stays).
-- **Government small counts.** Pages show small counts without suppression.
 - **Unreferenced model artifacts are kept.** Some older model artifacts remain in the repository on purpose.

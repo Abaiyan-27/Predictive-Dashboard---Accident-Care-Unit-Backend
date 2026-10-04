@@ -141,7 +141,7 @@ def test_full_patient_flow_on_migrated_schema(api):
     assert len(predictions(conn, accident_id)) == before
 
     # ── Treatment unlocks and stores all four models ───────────────────────
-    response = client.post("/api/treatments", headers=api["doctor"]["headers"], json={
+    response = client.post("/api/treatments", headers=api["nurse"]["headers"], json={
         "accident_id": accident_id, "hospital_id": api["hospital"], "number_of_days_stay": 2,
         "investigation_done": "x-ray", "management_name_1": "wound suturing",
         "management_name_2": "no other management",
@@ -154,7 +154,7 @@ def test_full_patient_flow_on_migrated_schema(api):
     for row in after_treatment:
         assert row[2] in {"OK", "LOW_CONFIDENCE"} and row[3] is not None, row
         assert row[4]["Investigation Done"] == "x-ray"
-        assert row[6] == api["doctor"]["id"]
+        assert row[6] == api["nurse"]["id"]          # the nurse who entered the treatment
 
     # ── Prognosis returns the stored rows and adds none ───────────────────
     patient_id = body["patient"]["patient_id"]

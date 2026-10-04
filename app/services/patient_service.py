@@ -86,7 +86,7 @@ def _transfer_inputs(
     """Return (Transfer To Next Hospital, State of Transfer) from recorded transfers.
 
     A completed transfer is a recorded fact. "Not transferred" is only stated
-    once a doctor has recorded treatment and no transfer is still open;
+    once treatment has been recorded and no transfer is still open;
     before that the outcome is unknown and both inputs stay missing.
     """
     approved = [item for item in transfers if item.get("status") == "approved"]

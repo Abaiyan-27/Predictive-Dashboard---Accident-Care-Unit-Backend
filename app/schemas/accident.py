@@ -106,7 +106,7 @@ class InjuryDescriptionOut(BaseModel):
 
 class TreatmentCreatePayload(BaseModel):
     accident_id: UUID
-    # Taken from the doctor's account; if sent it must be the doctor's own hospital.
+    # Taken from the nurse's account; if sent it must be the nurse's own hospital.
     hospital_id: Optional[UUID] = None
     ward_number: Optional[str] = None
     reason: Optional[str] = None

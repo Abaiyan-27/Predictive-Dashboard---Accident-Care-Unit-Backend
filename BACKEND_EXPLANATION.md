@@ -150,7 +150,7 @@ The schema is defined by the SQL migrations, applied in filename order. The old 
 * **[app/api/nurse.py](app/api/nurse.py)**: Patient intake (`POST /api/patients`), viewing nurse-admitted patients (`GET /api/patients/my`).
 * **[app/api/doctor.py](app/api/doctor.py)**: Hospital patient roster, patient details, and on-demand prognosis prediction (`GET /api/patients/{id}/prognosis`).
 * **[app/api/admin.py](app/api/admin.py)**: Real-time bed status, user creation, transfer management, and audit log inspection.
-* **[app/api/government.py](app/api/government.py)**: 12-month aggregated accident trends and regional risk analytics (no PII).
+* **[app/api/government.py](app/api/government.py)**: Accident forecasting (12-month accident counts, notebook history, seasonal-naive forecast) and the precomputed association rules only. No patient data, model predictions, decisions or operational statistics.
 
 ---
 
@@ -160,7 +160,7 @@ The schema is defined by the SQL migrations, applied in filename order. The old 
 1. **`nurse`**: Submits patient intake, views patients they admitted.
 2. **`doctor`**: Views admitted patients, inspects full records, requests ML prognosis.
 3. **`admin`**: Monitors hospital bed capacity, creates new staff users, approves/rejects transfers, inspects audit logs.
-4. **`government`**: Accesses macro analytics (monthly trends, regional predictions) without PII.
+4. **`government`**: Sees only accident forecasting and association-rule mining (read-only); no patient data, model statistics or decisions.
 
 ### 2. How the RBAC Guard Works
 When a request hits a protected endpoint:
@@ -250,7 +250,9 @@ Place `.joblib` or `.pkl` files in `app/ml_models/` and load them inside `ml_ser
 | `/api/admin/transfers/{id}/status` | `PATCH` | `admin` | Approves or rejects a patient transfer |
 | `/api/admin/audit-logs` | `GET` | `admin` | Inspects system activity history |
 | `/api/government/accident-trends` | `GET` | `government` | Returns 12-month aggregated accident trends |
-| `/api/government/risk-predictions` | `GET` | `government` | Returns regional risk and incident predictions |
+| `/api/government/accident-historical-trends` | `GET` | `government` | Monthly history from the forecasting notebook dataset |
+| `/api/government/accident-forecast` | `GET` | `government` | Seasonal-naive monthly accident forecast |
+| `/api/government/association-rules` | `GET` | `government` | Precomputed association rules (Apriori) |
 | `/health` | `GET` | Public | Service health probe |
 
 ---
@@ -285,8 +287,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 * **ReDoc Documentation:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
 * **Health Check:** [http://localhost:8000/health](http://localhost:8000/health)
 
-### Seed Credentials for Testing:
-* Nurse: `nurse@accidentcare.org` / `demo`
-* Doctor: `doctor@accidentcare.org` / `demo`
-* Admin: `admin@accidentcare.org` / `demo`
-* Government: `gov@accidentcare.org` / `demo`
+### Test accounts:
+No credentials are stored in the repository. Local and development test
+accounts come from the `TEST_*` variables; see [.env.test.example](.env.test.example)
+and [DEPLOYMENT.md](DEPLOYMENT.md#8-tests).

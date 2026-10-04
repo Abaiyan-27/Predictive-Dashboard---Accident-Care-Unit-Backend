@@ -85,11 +85,11 @@ def world(pg_cluster):
             body = client.post("/api/patients/intake", headers=people[nurse]["headers"],
                                json={**INTAKE, "full_name": name}).json()
             accident = body["accident_record"]["accident_id"]
-            # Severity is the nurse's model; the doctor's treatment runs only the doctor models.
+            # Severity is the nurse's model; the treatment (entered by the nurse) runs the doctor models.
             run = client.post(f"/api/severity/accidents/{accident}/run", headers=people[nurse]["headers"])
             assert run.status_code == 200, run.text
-            response = client.post("/api/treatments", headers=people[doctor]["headers"],
-                                   json={**TREATMENT, "accident_id": accident, "hospital_id": people[doctor]["hospital"]})
+            response = client.post("/api/treatments", headers=people[nurse]["headers"],
+                                   json={**TREATMENT, "accident_id": accident, "hospital_id": people[nurse]["hospital"]})
             assert response.status_code == 201, response.text
             predictions = dict(conn.execute(
                 'select model_key, prediction_id::text from "Model_Prediction" where accident_id = %s '
@@ -188,9 +188,9 @@ def test_doctor_cannot_get_prognosis_of_other_hospital(world):
 
 
 @pytest.mark.parametrize("hospital_key, expected", [(HOSPITAL_A, 404), (HOSPITAL_B, 403)])
-def test_doctor_cannot_treat_other_hospital_patient(world, hospital_key, expected):
+def test_nurse_cannot_treat_other_hospital_patient(world, hospital_key, expected):
     before = world["db"].execute('select count(*) from "Treatment"').fetchone()[0]
-    response = call(world, "doctor_a", "POST", "/api/treatments", json={
+    response = call(world, "nurse_a1", "POST", "/api/treatments", json={
         **TREATMENT, "accident_id": world["y"]["accident"], "hospital_id": world["hospitals"][hospital_key]})
     assert response.status_code == expected
     assert world["db"].execute('select count(*) from "Treatment"').fetchone()[0] == before
@@ -247,6 +247,12 @@ def test_doctor_model_endpoints_are_doctor_only(world, who):
     assert call(world, who, "GET", f"/api/patients/{x['patient']}/prognosis").status_code == 403
     assert call(world, who, "POST", "/api/xai/explain",
                 json={"model_name": "transfer", "accident_id": x["accident"]}).status_code == 403
+
+
+@pytest.mark.parametrize("who", ["doctor_a", "admin_a"])
+def test_only_nurses_record_treatment(world, who):
+    """Treatment is a model input, and every model input is entered by a nurse."""
+    x = world["x"]
     assert call(world, who, "POST", "/api/treatments", json={
         **TREATMENT, "accident_id": x["accident"], "hospital_id": world["people"][who]["hospital"]}).status_code == 403
 
@@ -331,7 +337,7 @@ def test_hospital_less_admin_is_told_why(world):
     assert "not assigned to a hospital" in response.json()["detail"]
 
 
-@pytest.mark.parametrize("path", ["/api/government/statistics", "/api/government/accident-trends"])
+@pytest.mark.parametrize("path", ["/api/government/accident-trends", "/api/government/association-rules"])
 def test_government_endpoints_are_government_only(world, path):
     assert call(world, "government", "GET", path).status_code == 200
     for who in ("nurse_a1", "doctor_a", "admin_a"):

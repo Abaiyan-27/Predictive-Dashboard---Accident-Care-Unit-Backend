@@ -1,4 +1,7 @@
-"""The doctor's workflow: treatment, the three doctor models and their decisions.
+"""The doctor's workflow: the three doctor models and their decisions.
+
+Every model input is entered by a nurse, treatment included; doctors read the
+treatment, review the predictions and record the decisions.
 
 Doctors decide Stay Duration, Transfer and Discharge independently. Each model
 has its own stored predictions (append-only Model_Prediction rows) and at most
@@ -217,7 +220,8 @@ def treatment_status(accident: dict[str, Any], models: dict[str, dict[str, Any]]
             "A doctor-model decision has been recorded; new treatment would change the inputs it was based on."
             if locked else None
         ),
-        "can_record": role == "doctor" and not locked,
+        # Every model input, treatment included, is entered by a nurse.
+        "can_record": role == "nurse" and not locked,
     }
 
 

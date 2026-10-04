@@ -489,7 +489,7 @@ def test_decision_on_a_nonexistent_prediction_is_not_found(world):
 
 def test_decision_on_a_non_severity_prediction_is_rejected(world):
     accident = register(world, **HIGH_INPUTS)
-    response = call(world, "doctor_a", "POST", "/api/treatments", json={
+    response = call(world, "nurse_a1", "POST", "/api/treatments", json={
         **TREATMENT, "accident_id": accident, "hospital_id": world["hospitals"][HOSPITAL_A]})
     assert response.status_code == 201, response.text
     stay_id = stored_predictions(world, accident, "stay_duration")[-1][0]
@@ -595,7 +595,7 @@ def test_decided_severity_inputs_are_locked_but_basic_details_stay_editable(worl
 
 def test_doctor_model_inputs_lock_once_treatment_is_recorded(world):
     accident = register(world, **HIGH_INPUTS, road_type="bend")
-    response = call(world, "doctor_a", "POST", "/api/treatments", json={
+    response = call(world, "nurse_a1", "POST", "/api/treatments", json={
         **TREATMENT, "accident_id": accident, "hospital_id": world["hospitals"][HOSPITAL_A]})
     assert response.status_code == 201, response.text
     path = f"/api/patients/intake/{accident}"

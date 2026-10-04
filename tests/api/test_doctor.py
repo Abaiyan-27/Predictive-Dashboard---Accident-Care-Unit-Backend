@@ -89,12 +89,13 @@ def test_get_patient_not_found(client, mock_supabase, doctor_token):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def _treatment_tables(mock_supabase, mock_treatment_table, mock_audit_table):
+def _treatment_tables(mock_supabase, mock_treatment_table, mock_audit_table, role="nurse"):
+    """Treatment is recorded by a nurse (every model input comes from a nurse)."""
     def table_side_effect(table_name):
         if table_name == "User":
             mock_table = MagicMock()
             mock_table.select.return_value.eq.return_value.execute.return_value = MockDBResult(data=[
-                {"user_id": "doctor-id-123", "role": "doctor", "hospital_id": HOSPITAL_A}
+                {"user_id": f"{role}-id-123", "role": role, "hospital_id": HOSPITAL_A}
             ])
             return mock_table
         elif table_name == "Treatment":
@@ -124,7 +125,7 @@ UNDECIDED = {key: {"decision": None} for key in ("stay_duration", "transfer", "d
 
 @patch("app.api.doctor.doctor_workflow.run_models")
 @patch("app.api.doctor.doctor_workflow.load_models_status", return_value=UNDECIDED)
-def test_create_treatment(mock_status, mock_run_models, client, mock_supabase, doctor_token):
+def test_create_treatment(mock_status, mock_run_models, client, mock_supabase, nurse_token):
     mock_treatment_table = MagicMock()
     mock_treatment_table.insert.return_value.execute.return_value = MockDBResult(data=[
         {"treatment_id": "treat-1"}
@@ -133,10 +134,10 @@ def test_create_treatment(mock_status, mock_run_models, client, mock_supabase, d
     mock_audit_table.insert.return_value.execute.return_value = MockDBResult(data=[{"id": 1}])
     _treatment_tables(mock_supabase, mock_treatment_table, mock_audit_table)
 
-    # No hospital_id is sent: the doctor's own hospital is used.
+    # No hospital_id is sent: the nurse's own hospital is used.
     response = client.post(
         "/api/treatments",
-        headers={"Authorization": f"Bearer {doctor_token}"},
+        headers={"Authorization": f"Bearer {nurse_token}"},
         json=TREATMENT_PAYLOAD,
     )
 
@@ -146,7 +147,8 @@ def test_create_treatment(mock_status, mock_run_models, client, mock_supabase, d
 
     mock_treatment_table.insert.assert_called_once()
     assert mock_treatment_table.insert.call_args.args[0]["hospital_id"] == HOSPITAL_A
-    assert mock_treatment_table.insert.call_args.args[0]["logged_by"] == "doctor-id-123"
+    assert mock_treatment_table.insert.call_args.args[0]["logged_by"] == "nurse-id-123"
+    assert mock_treatment_table.insert.call_args.args[0]["decided_by"] is None
     mock_audit_table.insert.assert_called_once()
     audit = mock_audit_table.insert.call_args.args[0]
     assert audit["action_type"] == "treatment_logged" and audit["details"]["treatment_id"] == "treat-1"
@@ -156,12 +158,12 @@ def test_create_treatment(mock_status, mock_run_models, client, mock_supabase, d
 @patch("app.api.doctor.doctor_workflow.run_models")
 @patch("app.api.doctor.doctor_workflow.load_models_status",
        return_value={**UNDECIDED, "transfer": {"decision": {"final_decision": "Transfer"}}})
-def test_treatment_is_locked_after_a_doctor_decision(mock_status, mock_run_models, client, mock_supabase, doctor_token):
+def test_treatment_is_locked_after_a_doctor_decision(mock_status, mock_run_models, client, mock_supabase, nurse_token):
     mock_treatment_table = MagicMock()
     _treatment_tables(mock_supabase, mock_treatment_table, MagicMock())
     response = client.post(
         "/api/treatments",
-        headers={"Authorization": f"Bearer {doctor_token}"},
+        headers={"Authorization": f"Bearer {nurse_token}"},
         json=TREATMENT_PAYLOAD,
     )
     assert response.status_code == status.HTTP_409_CONFLICT
@@ -169,14 +171,23 @@ def test_treatment_is_locked_after_a_doctor_decision(mock_status, mock_run_model
     mock_run_models.assert_not_called()
 
 
-def test_treatment_for_another_hospital_id_is_refused(client, mock_supabase, doctor_token):
+def test_treatment_for_another_hospital_id_is_refused(client, mock_supabase, nurse_token):
     mock_treatment_table = MagicMock()
     _treatment_tables(mock_supabase, mock_treatment_table, MagicMock())
     response = client.post(
         "/api/treatments",
-        headers={"Authorization": f"Bearer {doctor_token}"},
+        headers={"Authorization": f"Bearer {nurse_token}"},
         json={**TREATMENT_PAYLOAD, "hospital_id": HOSPITAL_B},
     )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    mock_treatment_table.insert.assert_not_called()
+
+
+def test_doctors_cannot_record_treatment(client, mock_supabase, doctor_token):
+    """Doctors review predictions and decide; they do not enter model inputs."""
+    mock_treatment_table = MagicMock()
+    _treatment_tables(mock_supabase, mock_treatment_table, MagicMock(), role="doctor")
+    response = client.post("/api/treatments", headers={"Authorization": f"Bearer {doctor_token}"}, json=TREATMENT_PAYLOAD)
     assert response.status_code == status.HTTP_403_FORBIDDEN
     mock_treatment_table.insert.assert_not_called()
 

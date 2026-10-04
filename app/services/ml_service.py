@@ -48,7 +48,7 @@ TIME_MAPPING = {value: index for index, value in enumerate(TIME_ORDER)}
 COMPLETENESS_FLOOR = 0.40
 LOW_CONF_PROB = 0.60
 
-# Fields documented only after the doctor records treatment. The stay, transfer
+# Fields documented only after treatment is recorded (by a nurse). The stay, transfer
 # and discharge notebooks were trained on records where these were filled in;
 # scoring at intake would let the imputer stand in for the inputs that carry
 # most of the signal, so these bundles refuse until they are recorded.

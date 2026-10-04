@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from postgrest.exceptions import APIError
 from supabase import Client
 
-from app.api.deps import Page, page_params, require_doctor, require_staff
+from app.api.deps import Page, page_params, require_doctor, require_nurse, require_staff
 from app.core.authorization import (
     DOCTOR,
     Principal,
@@ -106,14 +106,18 @@ def get_accident_detail(
 def create_treatment(
     payload: TreatmentCreatePayload,
     supabase: Client = Depends(get_supabase),
-    current_user: Principal = Depends(require_doctor),
+    current_user: Principal = Depends(require_nurse),
 ):
-    """Doctor logs a treatment for an accident record of their own hospital.
+    """A nurse records a treatment for an accident record of their own hospital.
 
-    The hospital comes from the doctor's account. Treatment is refused (409)
-    once any doctor-model decision exists, since it would change the inputs of
-    a decided prediction. After saving, the undecided doctor models whose
-    inputs are now complete run and their predictions are stored.
+    Treatment is an input of the Stay, Transfer and Discharge models, and every
+    model input is entered by a nurse; doctors review the predictions and make
+    the decisions. The hospital comes from the nurse's account. ``decided_by``
+    may name the doctor who decided the treatment (a doctor of the same
+    hospital). Treatment is refused (409) once any doctor-model decision
+    exists, since it would change the inputs of a decided prediction. After
+    saving, the undecided doctor models whose inputs are now complete run and
+    their predictions are stored.
     """
     own_hospital = ensure_own_hospital_id(current_user, payload.hospital_id)
     episode = load_accident(supabase, current_user, payload.accident_id, select=doctor_workflow.ACCIDENT_SELECT)
@@ -124,8 +128,8 @@ def create_treatment(
             detail="Treatment is locked: a doctor-model decision has already been recorded for this patient.",
         )
 
-    decided_by = str(payload.decided_by) if payload.decided_by else current_user.id
-    if decided_by != current_user.id:
+    decided_by = str(payload.decided_by) if payload.decided_by else None
+    if decided_by is not None:
         decider = (
             supabase.table("User").select("role,hospital_id").eq("user_id", decided_by).execute().data
         )
@@ -183,6 +187,18 @@ def create_treatment(
         **treatment,
         "doctor_workflow": doctor_workflow.load_models_status(supabase, accident, role=current_user.role),
     }
+
+
+@router.get("/accidents/{accident_id}/treatment")
+def get_treatment_status(
+    accident_id: UUID,
+    supabase: Client = Depends(get_supabase),
+    current_user: Principal = Depends(require_nurse),
+):
+    """The nurse's view of an episode's treatment: recorded entries, lock, and whether more can be added."""
+    episode = load_accident(supabase, current_user, accident_id, select=doctor_workflow.ACCIDENT_SELECT)
+    models = doctor_workflow.load_models_status(supabase, episode, role=current_user.role)
+    return doctor_workflow.treatment_status(episode, models, role=current_user.role)
 
 
 @router.get("/patients/{patient_id}/prognosis")

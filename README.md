@@ -55,7 +55,7 @@ Never run it against production.
 - `/api/patients` and `/api/accidents` — intake and clinical records
 - `/api/treatments` — doctor treatment logging
 - `/api/admin` — hospitals, staff, transfers, and audit logs
-- `/api/government` — real accident trends, model forecasts, and statistics
+- `/api/government` — accident forecasting and association rules only
 
 ## Model artifacts
 

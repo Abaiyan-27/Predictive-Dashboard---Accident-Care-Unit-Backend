@@ -119,9 +119,9 @@ def test_invalid_expired_and_forged_tokens_are_refused(stack):
 
 
 @pytest.mark.parametrize("role,method,path", [
-    ("nurse", "GET", "/api/admin/users"), ("nurse", "GET", "/api/government/statistics"),
-    ("doctor", "POST", "/api/patients/intake"), ("doctor", "GET", "/api/government/statistics"),
-    ("admin", "POST", "/api/treatments"), ("admin", "GET", "/api/government/statistics"),
+    ("nurse", "GET", "/api/admin/users"), ("nurse", "GET", "/api/government/accident-forecast"),
+    ("doctor", "POST", "/api/patients/intake"), ("doctor", "GET", "/api/government/association-rules"),
+    ("admin", "POST", "/api/treatments"), ("doctor", "POST", "/api/treatments"), ("admin", "GET", "/api/government/accident-trends"),
     ("government", "POST", "/api/patients/intake"), ("government", "GET", "/api/patients/my"),
     ("government", "GET", "/api/admin/users"),
 ])
@@ -204,13 +204,14 @@ def test_complete_workflow_for_every_role(stack):
     again = call(stack, nurse, "POST", f"/api/severity/predictions/{prediction['prediction_id']}/decision", json=decision)
     assert again.status_code == 409                     # decisions are final
 
-    # Doctor: list → patient → Severity read-only → treatment → Stay/Transfer/Discharge → accept/override.
+    # Nurse records the treatment (a model input); the doctor reviews Stay/Transfer/Discharge and decides.
     listed = call(stack, doctor, "GET", f"/api/patients/hospital/{hospital_a}")
     assert accident in {row["accident_id"] for row in listed.json()}
     episode = call(stack, doctor, "GET", f"/api/doctor/accidents/{accident}").json()
     assert episode["severity"]["final_severity"] and not episode["severity"]["can_override"]
     assert call(stack, doctor, "POST", f"/api/severity/accidents/{accident}/run").status_code == 403
-    treated = call(stack, doctor, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
+    assert call(stack, doctor, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]}).status_code == 403
+    treated = call(stack, nurse, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
     assert treated.status_code == 201, treated.text
     models = call(stack, doctor, "GET", f"/api/doctor/accidents/{accident}").json()["models"]
     for model_key in ("stay_duration", "transfer", "discharge"):
@@ -259,12 +260,10 @@ def test_complete_workflow_for_every_role(stack):
                     json={"reason": "Not needed"})
     assert rejected.status_code == 200, rejected.text
 
-    # Government: overview → each model page → forecast → association rules.
-    statistics = call(stack, government, "GET", "/api/government/statistics")
-    assert statistics.status_code == 200, statistics.text
-    for model_key in ("severity", "stay_duration", "transfer", "discharge"):
-        page = call(stack, government, "GET", f"/api/government/models/{model_key}")
-        assert page.status_code == 200, (model_key, page.text)
+    # Government: forecast (with its accident trends) → association rules; nothing else.
+    assert call(stack, government, "GET", "/api/government/accident-trends").status_code == 200
+    for removed in ("/api/government/statistics", "/api/government/models/severity"):
+        assert call(stack, government, "GET", removed).status_code == 404
     forecast = call(stack, government, "GET", "/api/government/accident-forecast", params={"horizon": 6})
     assert forecast.status_code == 200 and forecast.json()["status"] == "OK", forecast.text
     assert call(stack, government, "GET", "/api/government/accident-historical-trends").status_code == 200

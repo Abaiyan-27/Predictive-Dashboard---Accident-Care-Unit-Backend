@@ -116,5 +116,4 @@ class GovernmentUser(BaseHospitalUser):
     def view_analytics(self):
         """Simulate fetching large analytical datasets."""
         self.client.get("/api/government/accident-trends", name="/api/government/accident-trends")
-        self.client.get("/api/government/statistics", name="/api/government/statistics")
         self.client.get("/api/government/accident-forecast?horizon=6", name="/api/government/accident-forecast")

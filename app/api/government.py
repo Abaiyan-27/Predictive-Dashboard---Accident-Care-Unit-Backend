@@ -1,4 +1,9 @@
-"""Government router backed by real Supabase history and a forecast artifact."""
+"""Government router: accident forecasting and association-rule mining only.
+
+Government officers see the forecast, the monthly accident counts behind it,
+and the precomputed association rules. Patient-level data, model predictions,
+decisions and operational statistics are not exposed to them.
+"""
 from collections import Counter
 from datetime import datetime, timezone
 import json
@@ -13,11 +18,8 @@ from app.schemas.analytics import (
     AssociationRule,
     AssociationRulesResponse,
     ForecastResponse,
-    GovernmentStatistics,
-    ModelKey,
-    ModelSummary,
 )
-from app.services import government_analytics, ml_service
+from app.services import ml_service
 
 router = APIRouter(prefix="/government", tags=["Government"])
 
@@ -128,39 +130,6 @@ def get_accident_forecast(
     """Return future monthly counts from the installed forecasting artifact."""
     del current_user
     return ml_service.predict_accident_forecast(horizon).to_dict()
-
-
-@router.get("/statistics", response_model=GovernmentStatistics)
-def get_statistics(
-    supabase: Client = Depends(get_supabase),
-    current_user: dict = Depends(require_government),
-):
-    """Return aggregate statistics from the database."""
-    del current_user
-    accidents = supabase.table("Accident_Record").select("accident_id", count="exact").execute()
-    patients = supabase.table("Patient").select("patient_id", count="exact").execute()
-    hospitals = supabase.table("Hospital").select("hospital_id", count="exact").execute()
-    transfers = supabase.table("Transfer").select("transfer_id", count="exact").execute()
-    by_status = government_analytics.transfers_by_status(supabase)
-    return {
-        "total_accidents": accidents.count or 0,
-        "total_patients": patients.count or 0,
-        "total_hospitals": hospitals.count or 0,
-        "total_transfers": transfers.count or 0,
-        "pending_transfers": by_status["pending_authorization"],
-        "transfers_by_status": by_status,
-    }
-
-
-@router.get("/models/{model_key}", response_model=ModelSummary)
-def get_model_summary(
-    model_key: ModelKey,
-    supabase: Client = Depends(get_supabase),
-    current_user: dict = Depends(require_government),
-):
-    """Network-wide aggregate statistics for one patient model (read-only, no patient data)."""
-    del current_user
-    return government_analytics.model_summary(supabase, model_key)
 
 
 @router.get("/association-rules", response_model=AssociationRulesResponse)

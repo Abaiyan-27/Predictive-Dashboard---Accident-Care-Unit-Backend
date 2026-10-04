@@ -1,5 +1,8 @@
-"""Government workflow: network-wide, read-only, aggregate model statistics,
+"""Government access: forecasting and association-rule mining only, read-only,
 against the real API and a migrated database (PostgREST), with the real models.
+
+Patient models, decisions and operational statistics are not available to
+government officers; those endpoints do not exist.
 
 Hospitals A (DGH – Vavuniya) and B (DGH – Mannar) each have a nurse, a doctor
 and an admin; there is one government officer with no hospital.
@@ -18,29 +21,22 @@ from app.core.security import settings
 from app.core.security import create_access_token
 
 from .conftest import psycopg, running_api
-from .test_doctor_workflow import CASE_A, CASE_B, RETIRED
+from .test_doctor_workflow import CASE_A, CASE_B
 
 HOSPITAL_A, HOSPITAL_B = "DGH – Vavuniya", "DGH – Mannar"
-MODELS = ("severity", "stay_duration", "transfer", "discharge")
-LABELS = {
-    "severity": ["HIGH", "BORDERLINE", "LOW", "DEFER TO CLINICAL JUDGEMENT"],
-    "stay_duration": ["0-1 days", "2-3 days", "4+ days"],
-    "transfer": ["Transfer", "No transfer"],
-    "discharge": ["Complete recovery", "Partial recovery", "Further interventions"],
-}
-# Every Government endpoint, as the frontend calls them.
+# Every Government endpoint, as the frontend calls them: forecasting and data mining.
 GOVERNMENT_GETS = [
-    "/api/government/statistics",
     "/api/government/accident-trends",
     "/api/government/accident-historical-trends",
     "/api/government/accident-forecast?horizon=6",
     "/api/government/association-rules?limit=5",
-    *(f"/api/government/models/{model}" for model in MODELS),
 ]
 # Endpoints backed by the database (the others read installed artifacts and
 # may answer 503 where an artifact is not installed).
-DATABASE_GETS = ["/api/government/statistics", "/api/government/accident-trends",
-                 *(f"/api/government/models/{model}" for model in MODELS)]
+DATABASE_GETS = ["/api/government/accident-trends"]
+# Patient-model and operational statistics: removed, for every caller.
+REMOVED_GETS = ["/api/government/statistics",
+                *(f"/api/government/models/{model}" for model in ("severity", "stay_duration", "transfer", "discharge"))]
 
 
 @pytest.fixture(scope="module")
@@ -89,7 +85,7 @@ def _admit(world, case, nurse, doctor, before_treatment=None):
     prediction = run.json()["prediction"]
     if before_treatment:
         prediction = before_treatment(accident)
-    treated = call(world, doctor, "POST", "/api/treatments", json={"accident_id": accident, **case["treatment"]})
+    treated = call(world, nurse, "POST", "/api/treatments", json={"accident_id": accident, **case["treatment"]})
     assert treated.status_code == 201, treated.text
     return accident, prediction
 
@@ -141,12 +137,6 @@ def _populate(world):
     world["accidents"] = [a1, b1, a2]
 
 
-def summary(world, model):
-    response = call(world, "government", "GET", f"/api/government/models/{model}")
-    assert response.status_code == 200, response.text
-    return response.json()
-
-
 def db_rows(world, query, *params):
     return world["db"].execute(query, params).fetchall()
 
@@ -191,7 +181,7 @@ def _forged(world):
     }
 
 
-@pytest.mark.parametrize("path", ["/api/government/statistics", "/api/government/models/severity"])
+@pytest.mark.parametrize("path", ["/api/government/accident-trends", "/api/government/association-rules"])
 def test_malformed_or_forged_identities_are_refused(world, path):
     invalid, staff_claims = _forged(world)
     for label, token in invalid.items():
@@ -212,7 +202,7 @@ def test_a_user_row_with_a_government_role_is_not_a_government_officer(world):
 def test_government_needs_no_hospital(world):
     columns = [c.name for c in world["db"].execute('select * from "Government_Officer" limit 0').description]
     assert "hospital_id" not in columns
-    assert call(world, "government", "GET", "/api/government/models/severity").status_code == 200
+    assert call(world, "government", "GET", "/api/government/accident-trends").status_code == 200
 
 
 def _staff_endpoints(world):
@@ -268,118 +258,34 @@ def test_government_is_refused_every_staff_patient_decision_and_transfer_endpoin
 
 
 @pytest.mark.parametrize("method", ["POST", "PUT", "PATCH", "DELETE"])
-@pytest.mark.parametrize("path", ["/api/government/statistics", "/api/government/models/severity",
+@pytest.mark.parametrize("path", ["/api/government/accident-trends", "/api/government/accident-historical-trends",
                                   "/api/government/association-rules", "/api/government/accident-forecast"])
 def test_government_endpoints_are_read_only(world, method, path):
     assert call(world, "government", method, path, json={}).status_code == 405
 
 
-# ── Model statistics ─────────────────────────────────────────────────────
+# ── Only forecasting and data mining ──────────────────────────────────────
 
-@pytest.mark.parametrize("model", MODELS)
-def test_each_model_uses_exactly_its_contract_labels(world, model):
-    data = summary(world, model)
-    assert data["model_key"] == model and data["labels"] == LABELS[model]
-    assert [item["label"] for item in data["current"]] == LABELS[model]
-    for group in data["monthly"] + data["by_hospital"]:
-        assert set(group["counts"]) == set(LABELS[model])
-    text = json.dumps(data)
-    for retired in RETIRED:
-        assert retired not in text
+@pytest.mark.parametrize("who", ["government", "nurse_a", "doctor_a", "admin_a"])
+@pytest.mark.parametrize("path", REMOVED_GETS)
+def test_patient_model_and_operational_statistics_are_not_served(world, who, path):
+    assert call(world, who, "GET", path).status_code == 404
 
 
-def test_severity_reports_the_four_official_labels_only(world):
-    data = summary(world, "severity")
-    assert data["labels"] == ["HIGH", "BORDERLINE", "LOW", "DEFER TO CLINICAL JUDGEMENT"]
-    # DEFER is the model's "cannot score" answer: counted as an output, never as a decision.
-    assert data["decision_labels"] == ["HIGH", "BORDERLINE", "LOW"]
-    assert data["unavailable"] == 0
-    assert data["decision_role"] == "nurse"
+def test_government_routes_are_only_forecasting_and_association_rules():
+    from fastapi.routing import APIRoute
+
+    from app.main import app
+
+    paths = sorted(r.path for r in app.routes if isinstance(r, APIRoute) and r.path.startswith("/api/government"))
+    assert paths == ["/api/government/accident-forecast", "/api/government/accident-historical-trends",
+                     "/api/government/accident-trends", "/api/government/association-rules"]
 
 
-def test_severity_counts_match_the_stored_history(world):
-    data = summary(world, "severity")
-    rows = db_rows(world, 'select accident_id::text, prediction from "Model_Prediction" where model_key = %s order by prediction_seq', "severity")
-    latest: dict[str, str] = {}
-    for accident, prediction in rows:
-        latest[accident] = prediction
-    assert data["total_predictions"] == len(rows) == 5            # 4 episodes, one rerun
-    assert data["episodes_with_prediction"] == len(latest) == 4   # the rerun is not counted twice
-    expected = {label: list(latest.values()).count(label) for label in LABELS["severity"]}
-    assert {item["label"]: item["count"] for item in data["current"]} == expected
-    assert sum(item["percentage"] or 0 for item in data["current"]) == pytest.approx(100, abs=0.2)
-    decisions = data["decisions"]
-    assert decisions["overridden"] == 1
-    assert decisions["total"] == decisions["accepted"] + decisions["overridden"]
-
-
-def latest_outputs(world, model):
-    """Each episode's latest stored prediction for the model: {accident: (hospital, label)}."""
-    rows = db_rows(world, 'select accident_id::text, hospital_id::text, prediction from "Model_Prediction" '
-                          'where model_key = %s order by prediction_seq', model)
-    return {accident: (hospital, label) for accident, hospital, label in rows}
-
-
-@pytest.mark.parametrize("model", ["stay_duration", "transfer", "discharge"])
-def test_doctor_model_counts_match_the_stored_history(world, model):
-    data = summary(world, model)
-    latest = latest_outputs(world, model)
-    labels = [label for _, label in latest.values()]
-    assert data["episodes_with_prediction"] == len(latest) == 4
-    assert {i["label"]: i["count"] for i in data["current"]} == {label: labels.count(label) for label in LABELS[model]}
-    assert {i["label"]: i["percentage"] for i in data["current"]} == {
-        label: round(100 * labels.count(label) / len(labels), 1) for label in LABELS[model]}
-    # Episode A1 (CASE_A, never edited) has the known real outputs.
-    known = {"stay_duration": "2-3 days", "transfer": "No transfer", "discharge": "Partial recovery"}[model]
-    assert latest[world["accidents"][0]][1] == known
-
-
-def test_doctor_decisions_are_summarised_per_model(world):
-    stay = summary(world, "stay_duration")
-    assert stay["decision_role"] == "doctor"
-    assert stay["decisions"] == {"total": 1, "accepted": 1, "overridden": 0, "acceptance_rate": 100.0,
-                                 "distribution": [{"label": "0-1 days", "count": 0, "percentage": 0.0},
-                                                  {"label": "2-3 days", "count": 1, "percentage": 100.0},
-                                                  {"label": "4+ days", "count": 0, "percentage": 0.0}]}
-    transfer = summary(world, "transfer")
-    # The doctor overrode "No transfer" with "Transfer"; the model's own output still counts as the model said.
-    assert transfer["decisions"]["overridden"] == 1 and transfer["decisions"]["acceptance_rate"] == 0.0
-    assert {i["label"]: i["count"] for i in transfer["decisions"]["distribution"]} == {"Transfer": 1, "No transfer": 0}
-    assert latest_outputs(world, "transfer")[world["accidents"][0]][1] == "No transfer"
-
-    discharge = summary(world, "discharge")
-    assert discharge["decisions"]["total"] == 0 and discharge["decisions"]["acceptance_rate"] is None
-    assert all(item["percentage"] is None for item in discharge["decisions"]["distribution"])
-
-
-def test_statistics_are_network_wide_not_hospital_scoped(world):
-    hospital_a, hospital_b = world["hospitals"][HOSPITAL_A], world["hospitals"][HOSPITAL_B]
-    for model in MODELS:
-        data = summary(world, model)
-        latest = latest_outputs(world, model)
-        by_hospital = {item["hospital"]: item for item in data["by_hospital"]}
-        assert set(by_hospital) == {HOSPITAL_A, HOSPITAL_B}
-        assert by_hospital[HOSPITAL_A]["total"] == sum(1 for h, _ in latest.values() if h == hospital_a) == 3
-        assert by_hospital[HOSPITAL_B]["total"] == sum(1 for h, _ in latest.values() if h == hospital_b) == 1
-        [b_label] = [label for h, label in latest.values() if h == hospital_b]
-        assert by_hospital[HOSPITAL_B]["counts"] == {label: int(label == b_label) for label in LABELS[model]}
-
-
-def test_monthly_history_groups_episodes_by_admission_month(world):
-    data = summary(world, "severity")
-    assert len(data["monthly"]) == 12
-    now = datetime.now(timezone.utc)
-    window = {(now.year - (1 if now.month - i <= 0 else 0), (now.month - i - 1) % 12 + 1) for i in range(12)}
-    admitted_in_window = (2026, 9) in window          # every test episode has incident_at 2026-09-01
-    assert sum(m["total"] for m in data["monthly"]) == (4 if admitted_in_window else 0)
-    if admitted_in_window:
-        [september] = [m for m in data["monthly"] if m["month"] == "Sep 2026"]
-        assert september["total"] == 4
-
-
-def test_model_versions_are_reported(world):
-    data = summary(world, "discharge")
-    assert data["versions"] and sum(v["predictions"] for v in data["versions"]) == data["total_predictions"]
+def test_accident_trends_are_monthly_counts_only(world):
+    trends = call(world, "government", "GET", "/api/government/accident-trends").json()
+    assert len(trends) == 12 and all(set(item) == {"month", "count"} for item in trends)
+    assert sum(item["count"] for item in trends) == db_rows(world, 'select count(*) from "Accident_Record"')[0][0]
 
 
 def test_responses_contain_no_patient_level_data(world):
@@ -387,7 +293,7 @@ def test_responses_contain_no_patient_level_data(world):
     identifiers |= {r[0] for r in db_rows(world, 'select patient_id::text from "Patient"')}
     identifiers |= {r[0] for r in db_rows(world, 'select prediction_id::text from "Model_Prediction"')}
     identifiers |= {person["id"] for person in world["people"].values()}
-    for path in DATABASE_GETS:
+    for path in GOVERNMENT_GETS:
         text = call(world, "government", "GET", path).text
         for identifier in identifiers:
             assert identifier not in text, (path, identifier)
@@ -395,21 +301,9 @@ def test_responses_contain_no_patient_level_data(world):
             assert f'"{field}"' not in text, (path, field)
 
 
-def test_operational_transfers_are_reported_separately_from_the_transfer_model(world):
-    stats = call(world, "government", "GET", "/api/government/statistics").json()
-    assert stats["transfers_by_status"] == {"pending_authorization": 1, "authorized": 0, "approved": 0, "rejected": 0}
-    assert stats["pending_transfers"] == 1 and stats["total_transfers"] == 1
-    assert "transfers_by_status" not in summary(world, "transfer")
-
-
-def test_unknown_model_is_rejected(world):
-    for model in ("priority", "Severity", "forecast"):
-        assert call(world, "government", "GET", f"/api/government/models/{model}").status_code == 422
-
-
-def test_reading_statistics_changes_nothing_and_writes_no_audit(world):
+def test_reading_government_data_changes_nothing_and_writes_no_audit(world):
     tables = ("Model_Prediction", "Prediction_Decision", "AuditLog", "Transfer")
     before = {t: db_rows(world, f'select count(*) from "{t}"')[0][0] for t in tables}
-    for path in DATABASE_GETS:
+    for path in GOVERNMENT_GETS:
         call(world, "government", "GET", path)
     assert {t: db_rows(world, f'select count(*) from "{t}"')[0][0] for t in tables} == before

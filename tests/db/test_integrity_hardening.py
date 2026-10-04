@@ -71,8 +71,9 @@ def admit(world, nurse="nurse_a", run_severity=True):
     return accident, prediction
 
 
-def treat(world, accident, doctor="doctor_a"):
-    response = call(world, doctor, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
+def treat(world, accident, doctor="doctor_a", nurse="nurse_a"):
+    """A nurse records the treatment (a model input); the doctor reviews the predictions."""
+    response = call(world, nurse, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
     assert response.status_code == 201, response.text
     view = call(world, doctor, "GET", f"/api/doctor/accidents/{accident}").json()
     return {key: view["models"][key]["prediction"] for key in ("stay_duration", "transfer", "discharge")}
@@ -230,7 +231,7 @@ def test_doctor_model_inputs_and_treatment_lock_in_the_database(world):
     with pytest.raises(psycopg.errors.CheckViolation):
         db.execute('insert into "Treatment" (accident_id, hospital_id, number_of_days_stay) values (%s, %s, 1)',
                    (accident, world["hospitals"][HOSPITAL_A]))
-    response = call(world, "doctor_a", "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
+    response = call(world, "nurse_a", "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]})
     assert response.status_code == 409
 
 
@@ -440,12 +441,12 @@ def test_identity_fields_in_request_bodies_are_ignored_or_refused(world):
     assert row == (people["admin_a"]["id"], people["nurse_a"]["id"])
 
     accident2, _ = admit(world, run_severity=False)
-    treated = call(world, "doctor_a", "POST", "/api/treatments", json={
+    treated = call(world, "nurse_a", "POST", "/api/treatments", json={
         "accident_id": accident2, **CASE_A["treatment"], "logged_by": people["doctor_a2"]["id"]})
     assert treated.status_code == 201
     logged = db.execute('select logged_by::text, hospital_id::text from "Treatment" where accident_id = %s', (accident2,)).fetchone()
-    assert logged == (people["doctor_a"]["id"], hospitals[HOSPITAL_A])
-    assert call(world, "doctor_a", "POST", "/api/treatments", json={
+    assert logged == (people["nurse_a"]["id"], hospitals[HOSPITAL_A])
+    assert call(world, "nurse_a", "POST", "/api/treatments", json={
         "accident_id": accident2, **CASE_A["treatment"], "decided_by": people["nurse_a"]["id"]}).status_code == 403
 
 
@@ -578,7 +579,7 @@ def test_api_responses_never_contain_secrets(world):
     bodies = [call(world, who, "GET", path).text for who, path in [
         ("admin_a", "/api/admin/users"), ("admin_a", "/api/admin/patients"), ("admin_a", "/api/admin/audit-logs"),
         ("nurse_a", "/api/patients/my"), ("doctor_a", f"/api/doctor/accidents/{accident}"),
-        ("government", "/api/government/statistics")]]
+        ("government", "/api/government/accident-trends")]]
     bodies.append(call(world, "nurse_a", "GET", f"/api/admin/episodes/{accident}").text)   # an error response
     for body in bodies:
         lowered = body.lower()

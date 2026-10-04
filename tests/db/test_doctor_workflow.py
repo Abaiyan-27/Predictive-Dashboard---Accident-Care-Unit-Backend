@@ -100,8 +100,9 @@ def admit(world, case, nurse="nurse_a", severity_decision=None):
     return accident
 
 
-def treat(world, accident, case, doctor="doctor_a", **extra):
-    return call(world, doctor, "POST", "/api/treatments", json={"accident_id": accident, **case["treatment"], **extra})
+def treat(world, accident, case, nurse="nurse_a", **extra):
+    """Treatment is a model input, so a nurse records it (doctors only review and decide)."""
+    return call(world, nurse, "POST", "/api/treatments", json={"accident_id": accident, **case["treatment"], **extra})
 
 
 def treated(world, case, **kwargs):
@@ -202,7 +203,7 @@ def test_doctor_models_wait_for_treatment(world):
         assert status["state"] == "WAITING_FOR_INPUTS"
         assert "Investigation Done" in status["readiness"]["missing_required"]
         assert status["prediction"] is None
-    assert episode["treatment"]["recorded"] is False and episode["treatment"]["can_record"] is True
+    assert episode["treatment"]["recorded"] is False and episode["treatment"]["can_record"] is False   # nurses record it
     assert call(world, "doctor_a", "POST", f"/api/doctor/accidents/{accident}/run").status_code == 422
     # The prognosis view stores nothing for models that are not ready, and never runs Severity.
     patient = world["db"].execute('select patient_id::text from "Accident_Record" where accident_id = %s',
@@ -219,8 +220,7 @@ def test_treatment_runs_the_real_doctor_models_and_stores_the_predictions(world)
     treatment = world["db"].execute(
         'select hospital_id::text, logged_by::text, decided_by::text from "Treatment" where accident_id = %s',
         (accident,)).fetchone()
-    assert treatment == (world["hospitals"][HOSPITAL_A], world["people"]["doctor_a"]["id"],
-                         world["people"]["doctor_a"]["id"])
+    assert treatment == (world["hospitals"][HOSPITAL_A], world["people"]["nurse_a"]["id"], None)
 
     rows = {row[1]: row for row in stored(world, accident) if row[1] in DOCTOR_MODELS}
     assert set(rows) == set(DOCTOR_MODELS)
@@ -231,7 +231,7 @@ def test_treatment_runs_the_real_doctor_models_and_stores_the_predictions(world)
         prediction_id, _, status, label, inputs, trigger, requested_by, hospital = row
         assert label == expected[model_key]
         assert (trigger, requested_by, hospital) == (
-            "treatment_recorded", world["people"]["doctor_a"]["id"], world["hospitals"][HOSPITAL_A])
+            "treatment_recorded", world["people"]["nurse_a"]["id"], world["hospitals"][HOSPITAL_A])
         assert inputs["Investigation Done"] == "mri scan" and inputs["Management Name 1"] == "only medicine and discharge"
         rerun = ml_service.predict_bundle(model_key, inputs)          # the artifact, on the stored inputs
         assert (rerun.prediction, rerun.status) == (label, status)
@@ -242,7 +242,41 @@ def test_treatment_runs_the_real_doctor_models_and_stores_the_predictions(world)
     assert audit(world, accident, "treatment_logged")[0][3]["investigation_done"] == "mri scan"
     for model_key in DOCTOR_MODELS:
         [entry] = audit(world, accident, f"{model_key}_prediction_executed")
-        assert entry[3]["prediction_id"] == rows[model_key][0] and entry[0] == world["people"]["doctor_a"]["id"]
+        assert entry[3]["prediction_id"] == rows[model_key][0] and entry[0] == world["people"]["nurse_a"]["id"]
+
+
+@pytest.mark.parametrize("who", ["doctor_a", "doctor_a2", "admin_a", "government"])
+def test_only_nurses_enter_treatment(world, who):
+    """Every model input comes from a nurse: doctors (and others) cannot record treatment."""
+    accident = admit(world, CASE_A)
+    assert call(world, who, "POST", "/api/treatments", json={"accident_id": accident, **CASE_A["treatment"]}).status_code == 403
+    assert call(world, who, "GET", f"/api/accidents/{accident}/treatment").status_code == 403
+    assert world["db"].execute('select count(*) from "Treatment" where accident_id = %s', (accident,)).fetchone()[0] == 0
+
+
+def test_nurse_sees_the_treatment_status_and_its_lock(world):
+    accident = admit(world, CASE_A)
+    before = call(world, "nurse_a", "GET", f"/api/accidents/{accident}/treatment").json()
+    assert (before["recorded"], before["locked"], before["can_record"]) == (False, False, True)
+    assert treat(world, accident, CASE_A).status_code == 201
+    after = call(world, "nurse_a", "GET", f"/api/accidents/{accident}/treatment").json()
+    assert after["recorded"] is True and after["records"][0]["investigation_done"] == "mri scan"
+    stay = prediction_of(world, accident, "stay_duration")
+    assert decide(world, accident, stay["prediction_id"], action="accept").status_code == 201
+    locked = call(world, "nurse_a", "GET", f"/api/accidents/{accident}/treatment").json()
+    assert (locked["locked"], locked["can_record"]) == (True, False)
+    assert call(world, "nurse_b", "GET", f"/api/accidents/{accident}/treatment").status_code == 404
+
+
+def test_treatment_can_name_the_deciding_doctor_of_the_same_hospital(world):
+    accident = admit(world, CASE_A)
+    people = world["people"]
+    for decider in ("nurse_a", "doctor_b"):
+        assert treat(world, accident, CASE_A, decided_by=people[decider]["id"]).status_code == 403
+    assert treat(world, accident, CASE_A, decided_by=people["doctor_a2"]["id"]).status_code == 201
+    stored_decider = world["db"].execute('select decided_by::text from "Treatment" where accident_id = %s',
+                                         (accident,)).fetchone()[0]
+    assert stored_decider == people["doctor_a2"]["id"]
 
 
 def test_treatment_hospital_comes_from_the_account(world):
@@ -481,8 +515,8 @@ def test_other_hospital_doctor_is_denied_everything(world, episode_a):
     assert call(world, "doctor_b", "POST", f"/api/doctor/accidents/{accident}/run").status_code == 404
     for model_key in DOCTOR_MODELS:
         assert decide(world, accident, ids[model_key], who="doctor_b", action="accept").status_code == 404
-    assert treat(world, accident, CASE_B, doctor="doctor_b").status_code == 404
-    assert treat(world, accident, CASE_B, doctor="doctor_b",
+    assert treat(world, accident, CASE_B, nurse="nurse_b").status_code == 404
+    assert treat(world, accident, CASE_B, nurse="nurse_b",
                  hospital_id=world["hospitals"][HOSPITAL_A]).status_code == 403
     assert decisions(world, accident) == []
 

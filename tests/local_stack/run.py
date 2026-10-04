@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
@@ -28,6 +29,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, default=8000, help="port for the backend (default 8000)")
     args = parser.parse_args()
+    # Stop cleanly (database, container, backend) on SIGTERM as well as Ctrl-C.
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
     accounts = {role: {"email": a["email"], "password": a["password"]} for role, a in load_test_accounts().items()}
 
     initdb, pg_ctl = _pg_bin("initdb"), _pg_bin("pg_ctl")

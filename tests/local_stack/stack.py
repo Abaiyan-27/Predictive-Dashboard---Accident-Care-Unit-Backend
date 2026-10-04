@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 import secrets
+import socket
 import subprocess
 import sys
 import tempfile
@@ -175,6 +176,12 @@ def local_stack(cluster: Cluster, dbname: str, accounts: dict[str, dict], *, api
     """
     if not docker_ready():
         raise RuntimeError(f"Docker with the {POSTGREST_IMAGE} image is required")
+    if api_port is not None:
+        # Otherwise the readiness check could be answered by whatever already
+        # listens there (e.g. a developer backend pointed at a real project).
+        with socket.socket() as probe:
+            if probe.connect_ex(("127.0.0.1", api_port)) == 0:
+                raise RuntimeError(f"Port {api_port} is already in use; stop that server or choose another --port")
     with psycopg.connect(cluster.dsn(dbname), autocommit=True) as setup:
         setup.execute(SUPABASE_ROLES)
         setup.execute(f'alter database "{dbname}" set timezone to \'UTC\'')
@@ -227,6 +234,8 @@ def local_stack(cluster: Cluster, dbname: str, accounts: dict[str, dict], *, api
         )
         api = f"http://127.0.0.1:{api_port}"
         _wait_for(f"{api}/health", 120, "The backend", backend)
+        if backend.poll() is not None:
+            raise RuntimeError("The backend exited during startup; see its log")
         yield {"api": api, "db": conn, "auth": auth, "hospitals": hospitals, "people": people,
                "secret_key": secret_key, "service_key": service_key, "log_path": log_path}
         conn.close()

@@ -61,7 +61,7 @@ def call(world, who, method, path, **kwargs):
     return world["client"].request(method, path, headers=world["people"][who]["headers"], **kwargs)
 
 
-def admit(world, nurse="nurse_a", treat_with="doctor_a"):
+def admit(world, nurse="nurse_a", treat_with="nurse_a"):
     """A patient admitted by a nurse and (optionally) treated, so all doctor models have run."""
     body = call(world, nurse, "POST", "/api/patients/intake",
                 json={"full_name": f"Patient {uuid.uuid4().hex[:6]}", "gender": "Female", **CASE_A["intake"]})
@@ -405,7 +405,7 @@ def test_transfer_makes_predictions_stale_without_touching_history_or_decisions(
 
 def test_admin_patient_list_and_episode_are_read_only_and_scoped(world):
     accident = admit(world)
-    other = admit(world, nurse="nurse_b", treat_with="doctor_b")
+    other = admit(world, nurse="nurse_b", treat_with="nurse_b")
     listed = {row["accident_id"]: row for row in call(world, "admin_a", "GET", "/api/admin/patients").json()}
     assert accident in listed and other not in listed
     entry = listed[accident]
