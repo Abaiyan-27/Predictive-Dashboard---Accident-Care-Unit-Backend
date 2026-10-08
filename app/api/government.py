@@ -135,7 +135,7 @@ def get_accident_forecast(
 @router.get("/association-rules", response_model=AssociationRulesResponse)
 def get_association_rules(
     consequent: str = Query(default="", description="Filter rules whose consequents contain this substring"),
-    limit: int = Query(default=50, ge=1, le=500, description="Maximum number of rules to return"),
+    limit: int = Query(default=50, ge=1, le=1000, description="Maximum number of rules to return"),
     sort_by: str = Query(default="lift", description="Sort column: lift, confidence, or support"),
     current_user: dict = Depends(require_government),
 ):
@@ -201,8 +201,4 @@ def get_association_rules(
             "min_lift": 1.2,
         },
         rules=rules[:limit],
-        message=(
-            f"{len(rules)} validated rules available (showing top {min(limit, len(rules))} by {sort_key}). "
-            "Rules were checked for stability across 5 independent random data splits."
-        ),
     )
