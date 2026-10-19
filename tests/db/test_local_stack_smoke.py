@@ -225,9 +225,14 @@ def test_complete_workflow_for_every_role(stack):
         response = call(stack, doctor, "POST",
                         f"/api/doctor/accidents/{accident}/predictions/{model['prediction']['prediction_id']}/decision", json=body)
         assert response.status_code == 201, (model_key, response.text)
-    explained = call(stack, doctor, "POST", "/api/xai/explain",
-                     json={"accident_id": accident, "model_name": "discharge"})
-    assert explained.status_code in (200, 422), explained.text
+    # SHAP explanation of each doctor model, tied to the stored prediction it explains.
+    for model_key in ("stay_duration", "transfer", "discharge"):
+        explained = call(stack, doctor, "POST", "/api/xai/explain", json={"accident_id": accident, "model_name": model_key})
+        assert explained.status_code == 200, explained.text
+        body = explained.json()
+        assert body["available"] is True and body["prediction"] == models[model_key]["prediction"]["prediction"]
+        assert body["prediction_id"] == models[model_key]["prediction"]["prediction_id"]
+        assert body["method"].startswith("SHAP") and body["doctor_text"]
 
     # Admin: patients with Stay/Transfer → transfer request → authorize → audit log.
     patients = call(stack, admin, "GET", "/api/admin/patients")
@@ -269,6 +274,7 @@ def test_complete_workflow_for_every_role(stack):
     assert call(stack, government, "GET", "/api/government/accident-historical-trends").status_code == 200
     rules = call(stack, government, "GET", "/api/government/association-rules")
     assert rules.status_code == 200, rules.text
+    assert rules.json()["total_rules"] == 897 and rules.json()["rules"][0]["rule"].startswith("When ")
 
 
 # ── The server log (run last in this module) ───────────────────────────────

@@ -9,7 +9,6 @@ reproduce the notebook's probabilities, labels and completeness exactly.
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import joblib
@@ -18,7 +17,7 @@ import pandas as pd
 import pytest
 
 from app.contracts.severity import SEVERITY_LABELS
-from app.services import ml_service, patient_service, xai_service
+from app.services import ml_service, patient_service
 
 LOCAL = ml_service.LOCAL_MODEL_ROOT
 SAMPLE_SIZE = 300
@@ -507,42 +506,4 @@ def test_severity_failures_still_return_a_contract_label(status, patch_target, m
     assert result.prediction == "DEFER TO CLINICAL JUDGEMENT"
 
 
-# ── Explainability ────────────────────────────────────────────────────────
-
-def test_stay_explanation_describes_stay():
-    accident = {**INTAKE_ACCIDENT, "Treatment": [TREATMENT]}
-    record = patient_service.build_model_record(patient=PATIENT, accident=accident, transfers=[])
-    explanation = xai_service.explain("stay_duration", record)
-    first, meaning = explanation["doctor_explanation"][0], explanation["doctor_explanation"][3]
-    assert first.startswith("Prediction: Expected hospital stay is")
-    assert explanation["predicted_class"] in BUNDLE_LABELS["stay_duration"]
-    assert "stay-duration group" in meaning
-
-
-def test_explanation_waits_for_treatment():
-    record = patient_service.build_model_record(patient=PATIENT, accident=INTAKE_ACCIDENT)
-    explanation = xai_service.explain("transfer", record)
-    assert explanation["doctor_explanation"][0] == "Prediction: Not available until treatment is recorded."
-    assert "predicted_class" not in explanation
-
-
-def test_explanations_follow_the_active_model_root(tmp_path, monkeypatch):
-    for name in ("stay_duration", "transfer", "discharge"):
-        shutil.copytree(LOCAL / name, tmp_path / name)
-    shutil.copy(LOCAL / "Preprocessed_Dataset.csv", tmp_path / "Preprocessed_Dataset.csv")
-
-    xai_service.get_xai_models()  # warm the cache on the packaged root
-    monkeypatch.setattr(ml_service, "MODEL_ROOT", tmp_path)
-    ml_service._bundle_cache.clear()
-
-    xai_service.get_xai_models()
-    assert xai_service._CACHE_ROOT == tmp_path
-    assert xai_service.training_data_path() == tmp_path / "Preprocessed_Dataset.csv"
-    loaded = set(ml_service._bundle_cache)
-    for name in ("stay_duration", "transfer", "discharge"):
-        artifact = contract(name)["artifact"]
-        assert str(tmp_path / name / artifact) in loaded
-        assert str(LOCAL / name / artifact) not in loaded
-
-    (tmp_path / "Preprocessed_Dataset.csv").unlink()
-    assert xai_service.training_data_path() == LOCAL / "Preprocessed_Dataset.csv"
+# Explainability (SHAP) is tested in tests/unit/test_shap_explainer.py.

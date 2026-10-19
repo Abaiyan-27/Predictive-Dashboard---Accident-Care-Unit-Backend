@@ -1,0 +1,898 @@
+antecedents,consequents,support,confidence,lift
+Road Signals Exist=yes,"Category of Road=highway, Visiblity=adequate",0.021,0.59,3.918
+Road Signals Exist=yes,"Category of Road=highway, Road Condition=good",0.022,0.641,3.899
+"Road Condition=good, Road Signals Exist=yes",Category of Road=highway,0.022,0.713,3.823
+Road Signals Exist=yes,Category of Road=highway,0.023,0.65,3.485
+Mode Of Travel During Accident=pedestrian,Collision With=motorbike,0.025,0.683,3.332
+"Mode Of Travel During Accident=bicycle, Road Signals Exist=no",Approximate Speed=less than 40 km/h,0.062,0.697,2.718
+"Mode Of Travel During Accident=bicycle, Road Type=straight",Approximate Speed=less than 40 km/h,0.035,0.681,2.657
+"Collision With=fall from vehicle, Mode Of Travel During Accident=bicycle",Approximate Speed=less than 40 km/h,0.026,0.671,2.616
+"Mode Of Travel During Accident=bicycle, Road Condition=good",Approximate Speed=less than 40 km/h,0.044,0.645,2.517
+"Mode Of Travel During Accident=bicycle, Visiblity=adequate",Approximate Speed=less than 40 km/h,0.057,0.644,2.51
+"Mode Of Travel During Accident=bicycle, Road Condition=poor",Approximate Speed=less than 40 km/h,0.025,0.636,2.482
+"Collision With=motorbike, Mode Of Travel During Accident=bicycle",Approximate Speed=less than 40 km/h,0.024,0.635,2.477
+"Category of Road=sideroad, Mode Of Travel During Accident=bicycle",Approximate Speed=less than 40 km/h,0.051,0.634,2.474
+"Road Signals Exist=no, Road Type=junction",Approximate Speed=less than 40 km/h,0.057,0.61,2.378
+"Category of Road=sideroad, Road Type=junction",Approximate Speed=less than 40 km/h,0.046,0.608,2.372
+Category of Road=highway,"Road Condition=good, Road Type=straight",0.109,0.585,2.335
+Mode Of Travel During Accident=bicycle,"Approximate Speed=less than 40 km/h, Road Signals Exist=no",0.062,0.527,2.314
+Road Type=junction,"Approximate Speed=less than 40 km/h, Road Signals Exist=no",0.057,0.525,2.305
+Mode Of Travel During Accident=bicycle,Approximate Speed=less than 40 km/h,0.069,0.585,2.28
+"Road Type=junction, Visiblity=adequate",Approximate Speed=less than 40 km/h,0.055,0.583,2.274
+Road Type=junction,Approximate Speed=less than 40 km/h,0.062,0.571,2.229
+"Category of Road=highway, Collision With=animal",Road Type=straight,0.026,0.744,2.135
+"Collision With=fall from vehicle, Road Type=bend",Road Condition=poor,0.033,0.574,2.114
+"Collision With=fall from vehicle, Road Condition=poor",Approximate Speed=less than 40 km/h,0.04,0.537,2.093
+"Collision With=animal, Visiblity=poor",Road Type=straight,0.03,0.723,2.074
+"Collision With=animal, Road Condition=good",Road Type=straight,0.065,0.714,2.046
+"Approximate Speed=40 - 80 km/h, Category of Road=highway",Road Type=straight,0.072,0.712,2.043
+"Category of Road=highway, Time of Collision=09:00 - 12:00",Road Type=straight,0.027,0.69,1.979
+"Approximate Speed=40 - 80 km/h, Collision With=animal",Road Type=straight,0.06,0.687,1.969
+"Category of Road=highway, Visiblity=poor",Road Type=straight,0.024,0.685,1.966
+Road Signals Exist=yes,"Road Condition=good, Visiblity=adequate",0.029,0.816,1.937
+Category of Road=highway,"Road Type=straight, Visiblity=adequate",0.096,0.516,1.937
+"Category of Road=highway, Mode Of Travel During Accident=motor cyclist",Road Type=straight,0.082,0.675,1.935
+Category of Road=highway,"Helmet Worn=yes, Road Condition=good",0.122,0.655,1.929
+Category of Road=highway,"Road Condition=good, Road Signals Exist=no",0.141,0.758,1.925
+Road Signals Exist=yes,"Helmet Worn=yes, Road Condition=good",0.023,0.65,1.915
+"Category of Road=highway, Road Condition=good",Road Type=straight,0.109,0.664,1.905
+"Category of Road=highway, Road Signals Exist=yes",Road Condition=good,0.022,0.986,1.903
+"Category of Road=highway, Helmet Worn=yes",Road Type=straight,0.09,0.655,1.88
+Category of Road=highway,"Road Signals Exist=no, Road Type=straight",0.103,0.553,1.875
+Road Signals Exist=yes,"Road Condition=good, severity_label=low",0.025,0.71,1.871
+"Collision With=animal, Road Signals Exist=no",Road Type=straight,0.071,0.646,1.853
+Category of Road=highway,Road Type=straight,0.12,0.645,1.85
+"Collision With=animal, Helmet Worn=yes",Road Type=straight,0.073,0.643,1.845
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=forearm",Road Type=bend,0.025,0.601,1.835
+"Approximate Speed=40 - 80 km/h, Road Condition=poor",Road Type=bend,0.089,0.6,1.834
+"Category of Road=sideroad, Site of Injury No1=foot",Road Type=bend,0.021,0.6,1.832
+Helmet Worn=no,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.039,0.69,1.827
+"Category of Road=highway, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.117,0.964,1.824
+"Category of Road=sideroad, Site of Injury No1=shoulder injury",Road Type=bend,0.023,0.592,1.809
+Road Signals Exist=yes,Road Type=straight,0.022,0.627,1.798
+"Approximate Speed=40 - 80 km/h, Category of Road=highway",Road Condition=good,0.094,0.923,1.782
+"Collision With=animal, Visiblity=adequate",Road Type=straight,0.058,0.617,1.769
+"Category of Road=sideroad, Site of Injury No1=forearm",Road Type=bend,0.03,0.579,1.768
+"Category of Road=sideroad, Collision With=animal",Road Type=straight,0.06,0.616,1.766
+"Category of Road=highway, Road Type=straight",Road Condition=good,0.109,0.907,1.751
+Helmet Worn=no,"Approximate Speed=40 - 80 km/h, Category of Road=sideroad",0.033,0.582,1.75
+"Category of Road=highway, Collision With=motorbike",Road Condition=good,0.049,0.906,1.749
+Road Signals Exist=yes,Road Condition=good,0.032,0.899,1.734
+"Category of Road=highway, Road Type=junction",Road Condition=good,0.025,0.895,1.727
+Site of Injury No1=shoulder injury,"Approximate Speed=40 - 80 km/h, Category of Road=sideroad",0.029,0.575,1.727
+"Approximate Speed=less than 40 km/h, Collision With=animal",Road Type=straight,0.023,0.6,1.721
+Helmet Worn=yes,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.361,0.684,1.721
+"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",Helmet Worn=yes,0.361,0.91,1.721
+"Category of Road=highway, Time of Collision=18:00 - 21:00",Road Condition=good,0.029,0.889,1.717
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.113,0.907,1.715
+"Mode Of Travel During Accident=motor cyclist, Road Type=straight",Helmet Worn=yes,0.198,0.907,1.715
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Road Type=bend,0.027,0.561,1.715
+"Category of Road=highway, Time of Collision=12:00 -15:00",Road Condition=good,0.027,0.888,1.714
+"Category of Road=highway, Visiblity=poor",Road Condition=good,0.031,0.887,1.713
+Category of Road=highway,"Mode Of Travel During Accident=motor cyclist, Road Condition=good",0.107,0.573,1.712
+"Category of Road=highway, Collision With=animal",Road Condition=good,0.031,0.886,1.71
+"Category of Road=highway, Visiblity=adequate",Road Condition=good,0.133,0.885,1.708
+"Approximate Speed=40 - 80 km/h, Category of Road=sideroad",Road Type=bend,0.186,0.559,1.707
+Road Type=bend,"Approximate Speed=40 - 80 km/h, Category of Road=sideroad",0.186,0.568,1.707
+"Category of Road=highway, Helmet Worn=yes",Road Condition=good,0.122,0.884,1.706
+"Category of Road=highway, Time of Collision=06:00 - 09:00",Road Condition=good,0.022,0.882,1.701
+Category of Road=highway,Road Condition=good,0.164,0.881,1.7
+Category of Road=highway,"Road Condition=good, Visiblity=adequate",0.133,0.714,1.697
+"Category of Road=highway, Mode Of Travel During Accident=motorbike pillion rider",Helmet Worn=yes,0.021,0.897,1.696
+"Mode Of Travel During Accident=motor cyclist, Road Condition=good",Helmet Worn=yes,0.3,0.896,1.695
+Helmet Worn=yes,"Mode Of Travel During Accident=motor cyclist, Road Condition=good",0.3,0.567,1.695
+"Mode Of Travel During Accident=motor cyclist, Road Type=junction",Helmet Worn=yes,0.059,0.894,1.691
+Helmet Worn=yes,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.361,0.683,1.687
+"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",Helmet Worn=yes,0.361,0.892,1.687
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.314,0.891,1.685
+Helmet Worn=yes,"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motor cyclist",0.314,0.594,1.685
+"Helmet Worn=yes, Site of Injury No1=shoulder injury",Approximate Speed=40 - 80 km/h,0.025,0.755,1.684
+"Collision With=three wheeler, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.03,0.885,1.673
+Helmet Worn=no,"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motor cyclist",0.034,0.588,1.669
+"Mode Of Travel During Accident=motor cyclist, Road Condition=poor",Road Type=bend,0.097,0.546,1.669
+"Mode Of Travel During Accident=motor cyclist, Road Condition=poor",Helmet Worn=yes,0.157,0.882,1.668
+"Mode Of Travel During Accident=motor cyclist, Visiblity=poor",Helmet Worn=yes,0.099,0.882,1.667
+"Category of Road=sideroad, Site of Injury No1=shoulder injury",Approximate Speed=40 - 80 km/h,0.029,0.744,1.659
+"Approximate Speed=40 - 80 km/h, Collision With=animal",Helmet Worn=yes,0.076,0.877,1.659
+"Category of Road=highway, Collision With=animal",Helmet Worn=yes,0.031,0.877,1.658
+"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.33,0.874,1.653
+Helmet Worn=yes,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.33,0.625,1.653
+"Mode Of Travel During Accident=motor cyclist, Road Type=bend",Helmet Worn=yes,0.197,0.874,1.653
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motorbike pillion rider",Helmet Worn=yes,0.03,0.873,1.652
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=shoulder injury",Helmet Worn=yes,0.032,0.873,1.651
+"Approximate Speed=40 - 80 km/h, Category of Road=highway",Helmet Worn=yes,0.088,0.872,1.65
+Road Signals Exist=yes,"Helmet Worn=yes, Visiblity=adequate",0.023,0.668,1.649
+"Approximate Speed=40 - 80 km/h, Collision With=fall from vehicle",Helmet Worn=yes,0.062,0.871,1.647
+"Helmet Worn=no, Mode Of Travel During Accident=motor cyclist",Approximate Speed=40 - 80 km/h,0.034,0.734,1.638
+"Category of Road=sideroad, Road Condition=poor",Road Type=bend,0.121,0.534,1.631
+"Category of Road=sideroad, Time of Collision=15:00 - 18:00",Road Type=bend,0.057,0.534,1.629
+"Helmet Worn=yes, Road Condition=poor",Road Type=bend,0.092,0.533,1.629
+"Helmet Worn=yes, Time of Collision=21:00 - 00:00",Approximate Speed=40 - 80 km/h,0.024,0.73,1.629
+"Mode Of Travel During Accident=motor cyclist, Road Type=bend",Approximate Speed=40 - 80 km/h,0.163,0.722,1.611
+Collision With=car or van,"Road Condition=good, Road Signals Exist=no",0.021,0.633,1.608
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=forearm",Helmet Worn=yes,0.046,0.85,1.608
+"Helmet Worn=yes, Site of Injury No1=foot",Approximate Speed=40 - 80 km/h,0.022,0.72,1.607
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=shoulder injury",Approximate Speed=40 - 80 km/h,0.027,0.719,1.605
+"Collision With=animal, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.03,0.719,1.605
+"Road Type=bend, Site of Injury No1=shoulder injury",Category of Road=sideroad,0.023,0.922,1.602
+"Approximate Speed=40 - 80 km/h, Time of Collision=15:00 - 18:00",Road Type=bend,0.044,0.524,1.6
+Road Type=bend,"Category of Road=sideroad, severity_label=low",0.227,0.694,1.596
+"Mode Of Travel During Accident=motor cyclist, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.08,0.715,1.596
+Collision With=animal,Road Type=straight,0.089,0.556,1.595
+"Helmet Worn=yes, Site of Injury No1=shoulder injury",Mode Of Travel During Accident=motor cyclist,0.032,0.957,1.594
+"Road Type=bend, Site of Injury No1=foot",Category of Road=sideroad,0.021,0.917,1.593
+"Collision With=fall from vehicle, Road Condition=poor",Road Signals Exist=no,0.074,0.989,1.593
+"Collision With=motorbike, Road Condition=poor",Road Type=bend,0.028,0.521,1.591
+"Road Condition=poor, Visiblity=adequate",Road Type=bend,0.107,0.521,1.59
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=21:00 - 00:00",Helmet Worn=yes,0.03,0.839,1.588
+"Helmet Worn=yes, Site of Injury No1=elbow region",Approximate Speed=40 - 80 km/h,0.022,0.711,1.587
+"Collision With=animal, Road Condition=poor",Helmet Worn=yes,0.038,0.838,1.585
+"Collision With=fall from vehicle, Road Type=junction",Road Signals Exist=no,0.028,0.983,1.582
+"Helmet Worn=no, Road Condition=good",Approximate Speed=40 - 80 km/h,0.025,0.708,1.58
+Site of Injury No1=shoulder injury,"Approximate Speed=40 - 80 km/h, severity_label=low",0.026,0.529,1.578
+"Road Type=bend, Site of Injury No1=forearm",Approximate Speed=40 - 80 km/h,0.025,0.707,1.577
+"Helmet Worn=yes, Road Type=bend",Approximate Speed=40 - 80 km/h,0.152,0.707,1.577
+"Collision With=motorbike, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.093,0.832,1.574
+"Helmet Worn=no, Road Type=bend",Category of Road=sideroad,0.025,0.905,1.573
+"Approximate Speed=less than 40 km/h, Collision With=fall from vehicle",Road Signals Exist=no,0.078,0.976,1.571
+Category of Road=highway,"Helmet Worn=yes, Road Signals Exist=no",0.12,0.641,1.571
+"Helmet Worn=no, Mode Of Travel During Accident=motor cyclist",Road Type=bend,0.023,0.514,1.57
+"Helmet Worn=yes, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.077,0.704,1.57
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=06:00 - 09:00",Helmet Worn=yes,0.056,0.829,1.568
+"Category of Road=sideroad, Helmet Worn=no",Road Type=bend,0.025,0.513,1.568
+"Mode Of Travel During Accident=motor cyclist, Road Type=straight",Approximate Speed=40 - 80 km/h,0.154,0.702,1.567
+"Road Condition=good, Visiblity=poor",Road Type=straight,0.052,0.546,1.565
+"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",Road Type=bend,0.194,0.512,1.564
+Road Type=bend,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.194,0.591,1.564
+Category of Road=pathorfield,Road Signals Exist=no,0.022,0.971,1.563
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=forearm",Helmet Worn=yes,0.034,0.826,1.563
+"Helmet Worn=yes, Site of Injury No1=foot",Mode Of Travel During Accident=motor cyclist,0.029,0.938,1.562
+"Collision With=car or van, Road Signals Exist=no",Road Condition=good,0.021,0.809,1.561
+Road Condition=poor,"Category of Road=sideroad, Road Signals Exist=no",0.18,0.664,1.56
+"Mode Of Travel During Accident=motorbike pillion rider, Road Condition=good",Helmet Worn=yes,0.039,0.824,1.559
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=18:00 - 21:00",Helmet Worn=yes,0.081,0.824,1.559
+"Approximate Speed=40 - 80 km/h, Road Condition=poor",Category of Road=sideroad,0.133,0.896,1.558
+"Approximate Speed=40 - 80 km/h, Road Type=bend",Category of Road=sideroad,0.186,0.896,1.556
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=foot",Helmet Worn=yes,0.022,0.822,1.556
+"Collision With=fall from vehicle, Visiblity=poor",Road Signals Exist=no,0.031,0.965,1.554
+Road Signals Exist=yes,"Visiblity=adequate, severity_label=low",0.026,0.728,1.551
+"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",Approximate Speed=40 - 80 km/h,0.263,0.695,1.55
+Approximate Speed=40 - 80 km/h,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.263,0.586,1.55
+"Category of Road=sideroad, Collision With=fall from vehicle",Road Signals Exist=no,0.106,0.962,1.549
+"Collision With=animal, Road Type=straight",Helmet Worn=yes,0.073,0.818,1.547
+"Collision With=fall from vehicle, Road Type=bend",Road Signals Exist=no,0.055,0.96,1.546
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=shoulder injury",Category of Road=sideroad,0.029,0.889,1.546
+"Collision With=animal, Road Signals Exist=no",Helmet Worn=yes,0.09,0.817,1.546
+"Helmet Worn=yes, Road Type=straight",Approximate Speed=40 - 80 km/h,0.156,0.693,1.545
+"Collision With=animal, Visiblity=poor",Helmet Worn=yes,0.034,0.815,1.542
+"Helmet Worn=yes, Site of Injury No1=forearm",Mode Of Travel During Accident=motor cyclist,0.046,0.925,1.54
+Approximate Speed=80 - 100 km/h,Category of Road=sideroad,0.024,0.886,1.539
+Road Type=bend,"Approximate Speed=40 - 80 km/h, severity_label=low",0.169,0.516,1.539
+"Road Condition=poor, Road Type=bend",Category of Road=sideroad,0.121,0.885,1.539
+Site of Injury No1=shoulder injury,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.029,0.581,1.538
+"Road Condition=poor, Site of Injury No1=forearm",Category of Road=sideroad,0.025,0.884,1.537
+Category of Road=highway,"Road Condition=good, severity_label=low",0.109,0.582,1.536
+"Category of Road=sideroad, Helmet Worn=no",Approximate Speed=40 - 80 km/h,0.033,0.688,1.535
+Site of Injury No1=shoulder injury,"Category of Road=sideroad, Helmet Worn=yes",0.028,0.558,1.535
+"Collision With=animal, Visiblity=adequate",Helmet Worn=yes,0.076,0.811,1.534
+"Approximate Speed=40 - 80 km/h, Collision With=fall from vehicle",Road Signals Exist=no,0.068,0.952,1.533
+"Road Condition=good, Time of Collision=09:00 - 12:00",Road Type=straight,0.054,0.534,1.533
+"Category of Road=sideroad, Time of Collision=21:00 - 00:00",Approximate Speed=40 - 80 km/h,0.026,0.687,1.532
+"Approximate Speed=40 - 80 km/h, Time of Collision=12:00 -15:00",Helmet Worn=yes,0.053,0.808,1.529
+"Approximate Speed=40 - 80 km/h, Helmet Worn=no",Category of Road=sideroad,0.033,0.88,1.529
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=foot",Helmet Worn=yes,0.029,0.808,1.528
+"Collision With=animal, Helmet Worn=yes",Mode Of Travel During Accident=motor cyclist,0.104,0.917,1.527
+"Road Condition=good, Road Signals Exist=no",Road Type=straight,0.21,0.532,1.527
+Road Type=straight,"Road Condition=good, Road Signals Exist=no",0.21,0.601,1.527
+Road Type=bend,"Category of Road=sideroad, Helmet Worn=yes",0.182,0.556,1.527
+"Collision With=fall from vehicle, Road Condition=good",Road Type=straight,0.048,0.532,1.527
+Approximate Speed=40 - 80 km/h,"Mode Of Travel During Accident=motor cyclist, Road Condition=good",0.229,0.511,1.526
+"Mode Of Travel During Accident=motor cyclist, Road Condition=good",Approximate Speed=40 - 80 km/h,0.229,0.684,1.526
+"Helmet Worn=yes, Time of Collision=18:00 - 21:00",Mode Of Travel During Accident=motor cyclist,0.081,0.916,1.526
+"Collision With=animal, Road Type=bend",Helmet Worn=yes,0.03,0.806,1.525
+"Helmet Worn=yes, Road Type=bend",Mode Of Travel During Accident=motor cyclist,0.197,0.915,1.524
+"Helmet Worn=yes, Time of Collision=21:00 - 00:00",Mode Of Travel During Accident=motor cyclist,0.03,0.915,1.524
+"Helmet Worn=yes, Site of Injury No1=forearm",Approximate Speed=40 - 80 km/h,0.034,0.683,1.524
+"Collision With=fall from vehicle, Visiblity=adequate",Road Signals Exist=no,0.126,0.946,1.524
+Helmet Worn=no,"Category of Road=sideroad, Road Condition=good",0.03,0.52,1.523
+"Road Type=bend, Site of Injury No1=knee",Category of Road=sideroad,0.024,0.876,1.522
+"Collision With=fall from vehicle, Road Type=straight",Road Signals Exist=no,0.075,0.945,1.521
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=12:00 -15:00",Helmet Worn=yes,0.07,0.804,1.52
+Mode Of Travel During Accident=motor cyclist,"Approximate Speed=40 - 80 km/h, Helmet Worn=yes",0.314,0.523,1.52
+"Approximate Speed=40 - 80 km/h, Helmet Worn=yes",Mode Of Travel During Accident=motor cyclist,0.314,0.912,1.52
+"Approximate Speed=40 - 80 km/h, Road Type=straight",Helmet Worn=yes,0.156,0.803,1.52
+"Helmet Worn=yes, Road Condition=poor",Mode Of Travel During Accident=motor cyclist,0.157,0.911,1.517
+"Road Type=bend, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.044,0.68,1.517
+"Approximate Speed=40 - 80 km/h, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.069,0.802,1.516
+Road Type=junction,"Road Signals Exist=no, Visiblity=adequate",0.08,0.74,1.515
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=21:00 - 00:00",Approximate Speed=40 - 80 km/h,0.024,0.679,1.515
+Approximate Speed=40 - 80 km/h,"Category of Road=sideroad, Helmet Worn=yes",0.247,0.551,1.515
+"Category of Road=sideroad, Helmet Worn=yes",Approximate Speed=40 - 80 km/h,0.247,0.679,1.515
+"Helmet Worn=yes, Site of Injury No1=hand",Mode Of Travel During Accident=motor cyclist,0.024,0.909,1.514
+"Approximate Speed=40 - 80 km/h, Road Signals Exist=no",Helmet Worn=yes,0.262,0.8,1.513
+"Category of Road=sideroad, Helmet Worn=yes",Mode Of Travel During Accident=motor cyclist,0.33,0.908,1.512
+Mode Of Travel During Accident=motor cyclist,"Category of Road=sideroad, Helmet Worn=yes",0.33,0.55,1.512
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.095,0.799,1.512
+"Mode Of Travel During Accident=bicycle, Road Signals Exist=no",Road Type=straight,0.047,0.527,1.512
+"Road Type=bend, Site of Injury No1=forearm",Category of Road=sideroad,0.03,0.87,1.512
+"Collision With=animal, Road Condition=good",Helmet Worn=yes,0.073,0.799,1.511
+Site of Injury No1=shoulder injury,"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motor cyclist",0.027,0.532,1.511
+Road Condition=poor,"Category of Road=sideroad, Helmet Worn=yes",0.149,0.55,1.511
+"Collision With=animal, Mode Of Travel During Accident=motor cyclist",Helmet Worn=yes,0.104,0.798,1.51
+"Road Type=bend, Time of Collision=15:00 - 18:00",Category of Road=sideroad,0.057,0.868,1.509
+Road Type=junction,"Road Condition=good, Road Signals Exist=no",0.065,0.594,1.508
+"Road Signals Exist=no, Visiblity=poor",Road Type=straight,0.069,0.525,1.507
+Road Type=bend,"Category of Road=sideroad, Visiblity=adequate",0.224,0.683,1.506
+"Helmet Worn=yes, Site of Injury No1=humerus region",Mode Of Travel During Accident=motor cyclist,0.023,0.904,1.506
+"Helmet Worn=yes, Road Condition=poor",Category of Road=sideroad,0.149,0.866,1.504
+"Category of Road=highway, Visiblity=poor",Road Signals Exist=no,0.032,0.934,1.504
+Approximate Speed=less than 40 km/h,"Road Signals Exist=no, Visiblity=adequate",0.188,0.734,1.504
+"Mode Of Travel During Accident=motor cyclist, Road Condition=poor",Approximate Speed=40 - 80 km/h,0.12,0.674,1.503
+"Collision With=three wheeler, Helmet Worn=yes",Mode Of Travel During Accident=motor cyclist,0.03,0.902,1.502
+"Collision With=animal, Helmet Worn=yes",Approximate Speed=40 - 80 km/h,0.076,0.673,1.502
+Site of Injury No1=shoulder injury,"Category of Road=sideroad, severity_label=low",0.033,0.653,1.502
+"Collision With=motorbike, Road Type=straight",Road Condition=good,0.058,0.778,1.502
+"Category of Road=sideroad, Collision With=animal",Helmet Worn=yes,0.077,0.794,1.501
+"Approximate Speed=less than 40 km/h, Road Condition=poor",Road Signals Exist=no,0.088,0.931,1.499
+"Category of Road=sideroad, Road Type=bend",Approximate Speed=40 - 80 km/h,0.186,0.672,1.499
+"Approximate Speed=less than 40 km/h, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.039,0.931,1.499
+"Helmet Worn=yes, Visiblity=poor",Mode Of Travel During Accident=motor cyclist,0.099,0.9,1.499
+"Helmet Worn=no, Mode Of Travel During Accident=motor cyclist",Category of Road=sideroad,0.039,0.862,1.497
+"Mode Of Travel During Accident=motorbike pillion rider, Road Type=straight",Helmet Worn=yes,0.027,0.791,1.497
+"Helmet Worn=yes, Time of Collision=15:00 - 18:00",Mode Of Travel During Accident=motor cyclist,0.082,0.898,1.496
+"Collision With=animal, Road Type=straight",Approximate Speed=40 - 80 km/h,0.06,0.67,1.496
+"Category of Road=highway, Road Type=bend",Road Signals Exist=no,0.034,0.929,1.495
+"Helmet Worn=yes, Road Condition=good",Approximate Speed=40 - 80 km/h,0.227,0.67,1.495
+Approximate Speed=40 - 80 km/h,"Helmet Worn=yes, Road Condition=good",0.227,0.507,1.495
+"Site of Injury No1=shoulder injury, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.024,0.67,1.494
+"Collision With=animal, Road Condition=poor",Category of Road=sideroad,0.039,0.86,1.494
+"Approximate Speed=40 - 80 km/h, Visiblity=poor",Road Type=straight,0.051,0.521,1.493
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=shoulder injury",Helmet Worn=yes,0.025,0.789,1.492
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=knee",Helmet Worn=yes,0.041,0.789,1.492
+"Mode Of Travel During Accident=motor cyclist, Road Type=bend",Category of Road=sideroad,0.194,0.859,1.492
+"Approximate Speed=40 - 80 km/h, Visiblity=poor",Helmet Worn=yes,0.077,0.788,1.491
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=elbow region",Helmet Worn=yes,0.026,0.788,1.491
+"Helmet Worn=yes, Site of Injury No1=facial injury",Mode Of Travel During Accident=motor cyclist,0.032,0.895,1.491
+Mode Of Travel During Accident=motor cyclist,"Helmet Worn=yes, severity_label=low",0.348,0.579,1.49
+Mode Of Travel During Accident=motor cyclist,Helmet Worn=yes,0.473,0.787,1.489
+Helmet Worn=yes,Mode Of Travel During Accident=motor cyclist,0.473,0.894,1.489
+"Road Type=straight, Time of Collision=06:00 - 09:00",Road Condition=good,0.035,0.771,1.489
+"Collision With=fall from vehicle, Road Condition=good",Road Signals Exist=no,0.083,0.924,1.488
+"Mode Of Travel During Accident=motor cyclist, Road Condition=poor",Category of Road=sideroad,0.152,0.856,1.488
+"Mode Of Travel During Accident=motorbike pillion rider, Visiblity=adequate",Helmet Worn=yes,0.044,0.787,1.488
+"Road Type=bend, Time of Collision=09:00 - 12:00",Category of Road=sideroad,0.051,0.856,1.487
+Approximate Speed=40 - 80 km/h,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.27,0.602,1.487
+"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.27,0.666,1.487
+Site of Injury No1=shoulder injury,"Helmet Worn=yes, severity_label=low",0.029,0.578,1.486
+Road Condition=poor,"Category of Road=sideroad, Mode Of Travel During Accident=motor cyclist",0.152,0.562,1.486
+Helmet Worn=no,"Category of Road=sideroad, severity_label=low",0.037,0.645,1.484
+Mode Of Travel During Accident=motor cyclist,"Helmet Worn=yes, Visiblity=adequate",0.361,0.601,1.484
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Category of Road=sideroad,0.042,0.854,1.484
+"Helmet Worn=yes, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.06,0.665,1.483
+"Road Condition=good, Time of Collision=18:00 - 21:00",Road Type=straight,0.044,0.517,1.483
+"Mode Of Travel During Accident=motorbike pillion rider, Road Signals Exist=no",Helmet Worn=yes,0.047,0.784,1.483
+"Helmet Worn=yes, Time of Collision=18:00 - 21:00",Approximate Speed=40 - 80 km/h,0.059,0.664,1.482
+Site of Injury No1=shoulder injury,"Approximate Speed=40 - 80 km/h, Helmet Worn=yes",0.025,0.51,1.482
+Approximate Speed=40 - 80 km/h,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.314,0.7,1.482
+"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",Approximate Speed=40 - 80 km/h,0.314,0.664,1.482
+"Collision With=animal, Road Condition=good",Approximate Speed=40 - 80 km/h,0.06,0.664,1.481
+"Approximate Speed=less than 40 km/h, Road Type=junction",Road Signals Exist=no,0.057,0.919,1.48
+"Approximate Speed=40 - 80 km/h, Helmet Worn=no",Mode Of Travel During Accident=motor cyclist,0.034,0.888,1.48
+"Helmet Worn=yes, Road Condition=poor",Approximate Speed=40 - 80 km/h,0.114,0.663,1.479
+"Approximate Speed=40 - 80 km/h, Road Type=junction",Helmet Worn=yes,0.032,0.782,1.479
+"Road Type=bend, Visiblity=adequate",Category of Road=sideroad,0.224,0.85,1.478
+"Category of Road=highway, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.036,0.917,1.477
+Helmet Worn=no,Approximate Speed=40 - 80 km/h,0.038,0.662,1.477
+"Helmet Worn=no, Visiblity=adequate",Category of Road=sideroad,0.036,0.849,1.476
+Mode Of Travel During Accident=motor cyclist,"Helmet Worn=yes, Road Signals Exist=no",0.361,0.602,1.474
+"Category of Road=highway, Collision With=fall from vehicle",Helmet Worn=yes,0.031,0.779,1.474
+"Road Type=bend, Site of Injury No1=facial injury",Category of Road=sideroad,0.022,0.848,1.473
+"Helmet Worn=no, Road Condition=good",Category of Road=sideroad,0.03,0.847,1.472
+"Road Type=bend, Time of Collision=06:00 - 09:00",Category of Road=sideroad,0.03,0.847,1.472
+Helmet Worn=no,Category of Road=sideroad,0.048,0.847,1.471
+"Collision With=fall from vehicle, Helmet Worn=yes",Road Signals Exist=no,0.104,0.913,1.471
+"Mode Of Travel During Accident=bicycle, Road Type=straight",Road Signals Exist=no,0.047,0.912,1.469
+Road Type=bend,Category of Road=sideroad,0.277,0.845,1.469
+"Approximate Speed=40 - 80 km/h, Time of Collision=18:00 - 21:00",Helmet Worn=yes,0.059,0.776,1.468
+"Category of Road=highway, Collision With=fall from vehicle",Road Signals Exist=no,0.037,0.912,1.468
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=knee",Helmet Worn=yes,0.03,0.775,1.466
+Category of Road=highway,"Helmet Worn=yes, Visiblity=adequate",0.111,0.594,1.466
+"Time of Collision=06:00 - 09:00, Visiblity=adequate",Road Condition=good,0.063,0.759,1.465
+Helmet Worn=yes,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.348,0.658,1.465
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=foot",Approximate Speed=40 - 80 km/h,0.024,0.656,1.464
+"Approximate Speed=less than 40 km/h, Road Type=straight",Road Signals Exist=no,0.102,0.909,1.464
+"Category of Road=highway, Time of Collision=18:00 - 21:00",Helmet Worn=yes,0.025,0.774,1.464
+"Approximate Speed=less than 40 km/h, Collision With=animal",Road Signals Exist=no,0.035,0.908,1.463
+"Road Signals Exist=no, Site of Injury No1=shoulder injury",Approximate Speed=40 - 80 km/h,0.022,0.655,1.462
+"Collision With=motorbike, Road Condition=poor",Category of Road=sideroad,0.045,0.841,1.462
+"Approximate Speed=less than 40 km/h, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.049,0.907,1.46
+Approximate Speed=40 - 80 km/h,"Helmet Worn=yes, severity_label=low",0.254,0.568,1.46
+"Approximate Speed=less than 40 km/h, Time of Collision=18:00 - 21:00",Road Signals Exist=no,0.042,0.906,1.459
+"Approximate Speed=40 - 80 km/h, Road Type=straight",Road Condition=good,0.147,0.756,1.459
+Approximate Speed=40 - 80 km/h,"Helmet Worn=yes, Visiblity=adequate",0.265,0.591,1.458
+"Helmet Worn=yes, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.265,0.654,1.458
+"Approximate Speed=40 - 80 km/h, Road Condition=poor",Helmet Worn=yes,0.114,0.771,1.458
+"Approximate Speed=40 - 80 km/h, Collision With=animal",Mode Of Travel During Accident=motor cyclist,0.076,0.873,1.454
+"Approximate Speed=less than 40 km/h, Site of Injury No1=facial injury",Road Signals Exist=no,0.024,0.903,1.454
+"Approximate Speed=less than 40 km/h, Helmet Worn=yes",Road Signals Exist=no,0.122,0.903,1.453
+"Road Condition=poor, Visiblity=adequate",Category of Road=sideroad,0.171,0.836,1.453
+Helmet Worn=no,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.034,0.588,1.453
+Road Condition=poor,Category of Road=sideroad,0.227,0.836,1.453
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=bicycle",Road Signals Exist=no,0.062,0.902,1.452
+"Approximate Speed=40 - 80 km/h, Road Condition=good",Helmet Worn=yes,0.227,0.768,1.452
+Helmet Worn=yes,Approximate Speed=40 - 80 km/h,0.344,0.651,1.452
+Approximate Speed=40 - 80 km/h,Helmet Worn=yes,0.344,0.767,1.452
+"Collision With=motorbike, Road Type=junction",Road Signals Exist=no,0.031,0.901,1.451
+"Site of Injury No1=shoulder injury, Visiblity=adequate",Category of Road=sideroad,0.03,0.835,1.451
+"Road Condition=poor, Road Type=bend",Approximate Speed=40 - 80 km/h,0.089,0.65,1.45
+Approximate Speed=40 - 80 km/h,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.258,0.576,1.45
+"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",Approximate Speed=40 - 80 km/h,0.258,0.65,1.45
+"Collision With=motorbike, Road Type=junction",Road Condition=good,0.026,0.751,1.45
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=foot",Mode Of Travel During Accident=motor cyclist,0.024,0.87,1.449
+"Category of Road=highway, Visiblity=poor",Helmet Worn=yes,0.026,0.765,1.448
+"Approximate Speed=40 - 80 km/h, Road Type=junction",Road Condition=good,0.031,0.75,1.448
+"Approximate Speed=less than 40 km/h, Collision With=motorbike",Road Condition=good,0.049,0.748,1.444
+"Category of Road=highway, Mode Of Travel During Accident=motor cyclist",Approximate Speed=40 - 80 km/h,0.079,0.647,1.443
+Site of Injury No1=shoulder injury,Approximate Speed=40 - 80 km/h,0.032,0.646,1.442
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=motor cyclist",Road Signals Exist=no,0.112,0.895,1.441
+"Approximate Speed=less than 40 km/h, Visiblity=poor",Road Signals Exist=no,0.04,0.894,1.44
+"Category of Road=highway, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.03,0.76,1.438
+"Helmet Worn=yes, Site of Injury No1=shoulder injury",Category of Road=sideroad,0.028,0.827,1.437
+Category of Road=highway,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.106,0.569,1.433
+Road Signals Exist=yes,Visiblity=adequate,0.032,0.908,1.433
+"Site of Injury No1=humerus region, Visiblity=adequate",Road Signals Exist=no,0.025,0.89,1.432
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motorbike pillion rider",Road Condition=good,0.026,0.742,1.432
+Road Type=junction,"Road Condition=good, Visiblity=adequate",0.066,0.603,1.432
+"Approximate Speed=40 - 80 km/h, Collision With=fall from vehicle",Mode Of Travel During Accident=motor cyclist,0.061,0.859,1.432
+Approximate Speed=less than 40 km/h,Road Signals Exist=no,0.228,0.889,1.431
+"Road Type=straight, Visiblity=adequate",Road Condition=good,0.198,0.741,1.431
+"Category of Road=highway, Road Type=junction",Visiblity=adequate,0.025,0.906,1.43
+Approximate Speed=40 - 80 km/h,"Helmet Worn=yes, Road Signals Exist=no",0.262,0.584,1.43
+"Category of Road=sideroad, Collision With=animal",Approximate Speed=40 - 80 km/h,0.062,0.641,1.429
+"Approximate Speed=40 - 80 km/h, Time of Collision=06:00 - 09:00",Road Condition=good,0.038,0.741,1.429
+"Helmet Worn=no, Road Type=bend",Mode Of Travel During Accident=motor cyclist,0.023,0.858,1.429
+"Road Type=bend, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.168,0.64,1.429
+"Category of Road=highway, Time of Collision=12:00 -15:00",Helmet Worn=yes,0.023,0.755,1.429
+"Road Type=bend, Time of Collision=09:00 - 12:00",Approximate Speed=40 - 80 km/h,0.038,0.64,1.429
+"Approximate Speed=40 - 80 km/h, Time of Collision=21:00 - 00:00",Category of Road=sideroad,0.026,0.821,1.426
+"Road Type=bend, Time of Collision=12:00 -15:00",Helmet Worn=yes,0.038,0.752,1.423
+"Category of Road=highway, Road Type=straight",Helmet Worn=yes,0.09,0.752,1.423
+"Road Type=straight, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.065,0.884,1.423
+"Approximate Speed=less than 40 km/h, Time of Collision=06:00 - 09:00",Road Condition=good,0.024,0.737,1.422
+"Helmet Worn=yes, Road Type=straight",Road Condition=good,0.166,0.736,1.421
+"Collision With=animal, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.024,0.751,1.421
+"Category of Road=sideroad, Mode Of Travel During Accident=motorbike pillion rider",Helmet Worn=yes,0.034,0.75,1.419
+"Category of Road=sideroad, Collision With=three wheeler",Road Signals Exist=no,0.026,0.881,1.419
+"Mode Of Travel During Accident=motor cyclist, Road Type=straight",Road Condition=good,0.161,0.735,1.419
+"Helmet Worn=yes, Road Type=junction",Road Signals Exist=no,0.06,0.881,1.418
+"Site of Injury No1=foot, Visiblity=adequate",Category of Road=sideroad,0.029,0.816,1.418
+"Road Type=straight, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.047,0.881,1.418
+"Category of Road=highway, Collision With=animal",Approximate Speed=40 - 80 km/h,0.022,0.635,1.416
+Category of Road=highway,"Road Signals Exist=no, Visiblity=adequate",0.129,0.691,1.415
+Road Type=bend,Approximate Speed=40 - 80 km/h,0.208,0.634,1.415
+"Road Condition=good, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.061,0.634,1.414
+"Road Type=straight, Time of Collision=09:00 - 12:00",Road Condition=good,0.054,0.732,1.414
+Road Type=junction,"Category of Road=sideroad, Road Signals Exist=no",0.065,0.601,1.413
+Approximate Speed=less than 40 km/h,"Category of Road=sideroad, Road Signals Exist=no",0.154,0.6,1.41
+Helmet Worn=no,"Category of Road=sideroad, Visiblity=adequate",0.036,0.639,1.41
+"Collision With=animal, Road Type=straight",Road Condition=good,0.065,0.73,1.41
+"Road Type=straight, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.051,0.631,1.408
+"Category of Road=highway, Mode Of Travel During Accident=motor cyclist",Road Signals Exist=no,0.106,0.875,1.408
+"Road Signals Exist=no, Time of Collision=06:00 - 09:00",Road Condition=good,0.055,0.73,1.408
+Collision With=three wheeler,"Helmet Worn=yes, Visiblity=adequate",0.028,0.57,1.408
+Road Condition=poor,"Category of Road=sideroad, severity_label=low",0.166,0.611,1.407
+"Collision With=car or van, Road Condition=good",Road Signals Exist=no,0.021,0.873,1.406
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motorbike pillion rider",Road Signals Exist=no,0.03,0.873,1.406
+"Category of Road=highway, Road Condition=good",Helmet Worn=yes,0.122,0.743,1.405
+"Approximate Speed=40 - 80 km/h, Category of Road=highway",Road Signals Exist=no,0.088,0.872,1.404
+"Site of Injury No1=shoulder clavicle, Visiblity=adequate",Helmet Worn=yes,0.023,0.742,1.404
+"Road Condition=poor, Road Type=straight",Road Signals Exist=no,0.085,0.872,1.404
+"Collision With=animal, Time of Collision=09:00 - 12:00",Mode Of Travel During Accident=motor cyclist,0.027,0.843,1.404
+"Road Condition=poor, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.047,0.871,1.403
+Site of Injury No1=shoulder injury,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.031,0.63,1.403
+"Category of Road=highway, Road Signals Exist=no",Helmet Worn=yes,0.12,0.74,1.401
+Category of Road=highway,Helmet Worn=yes,0.138,0.74,1.401
+"Category of Road=sideroad, Mode Of Travel During Accident=motorbike pillion rider",Road Signals Exist=no,0.039,0.87,1.4
+Collision With=car or van,Road Condition=good,0.024,0.725,1.399
+Mode Of Travel During Accident=motorbike pillion rider,"Helmet Worn=yes, Road Signals Exist=no",0.047,0.571,1.398
+"Category of Road=sideroad, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.067,0.627,1.398
+"Category of Road=highway, Collision With=animal",Road Signals Exist=no,0.031,0.868,1.397
+"Road Condition=good, Road Type=junction",Road Signals Exist=no,0.065,0.867,1.397
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=facial injury",Category of Road=sideroad,0.026,0.803,1.396
+"Collision With=motorbike, Road Type=straight",Road Signals Exist=no,0.065,0.866,1.395
+"Category of Road=highway, Helmet Worn=yes",Road Signals Exist=no,0.12,0.866,1.395
+Category of Road=highway,Road Signals Exist=no,0.162,0.866,1.395
+Road Signals Exist=yes,Helmet Worn=yes,0.026,0.737,1.395
+"Category of Road=sideroad, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.074,0.625,1.394
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=forearm",Approximate Speed=40 - 80 km/h,0.034,0.625,1.394
+"Road Type=straight, Site of Injury No1=facial injury",Road Signals Exist=no,0.024,0.865,1.394
+"Helmet Worn=yes, Site of Injury No1=humerus region",Road Signals Exist=no,0.022,0.865,1.393
+"Site of Injury No1=shoulder clavicle, Visiblity=adequate",Road Condition=good,0.023,0.722,1.393
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=18:00 - 21:00",Approximate Speed=40 - 80 km/h,0.062,0.624,1.392
+"Collision With=motorbike, Visiblity=poor",Road Signals Exist=no,0.027,0.865,1.392
+"Helmet Worn=yes, Time of Collision=06:00 - 09:00",Road Condition=good,0.046,0.721,1.392
+"Approximate Speed=40 - 80 km/h, Collision With=three wheeler",Visiblity=adequate,0.023,0.881,1.391
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.065,0.623,1.391
+"Collision With=animal, Visiblity=poor",Mode Of Travel During Accident=motor cyclist,0.035,0.835,1.39
+Road Condition=poor,"Category of Road=sideroad, Visiblity=adequate",0.171,0.63,1.39
+"Road Condition=good, Road Type=junction",Visiblity=adequate,0.066,0.88,1.389
+"Collision With=motorbike, Road Condition=poor",Road Signals Exist=no,0.047,0.862,1.388
+Road Type=junction,Road Signals Exist=no,0.094,0.862,1.387
+Road Type=straight,Road Condition=good,0.251,0.719,1.387
+"Collision With=fall from vehicle, Road Type=bend",Helmet Worn=yes,0.042,0.733,1.386
+"Site of Injury No1=elbow region, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.023,0.621,1.386
+"Approximate Speed=less than 40 km/h, Road Type=junction",Visiblity=adequate,0.055,0.878,1.385
+Approximate Speed=less than 40 km/h,"Road Condition=good, Road Signals Exist=no",0.14,0.545,1.384
+"Mode Of Travel During Accident=bicycle, Road Condition=poor",Road Signals Exist=no,0.034,0.86,1.384
+"Road Signals Exist=no, Site of Injury No1=shoulder injury",Category of Road=sideroad,0.027,0.796,1.384
+"Collision With=three wheeler, Visiblity=adequate",Helmet Worn=yes,0.028,0.731,1.383
+"Road Signals Exist=no, Site of Injury No1=shoulder clavicle",Road Condition=good,0.023,0.716,1.383
+Road Type=bend,"Visiblity=adequate, severity_label=low",0.213,0.649,1.383
+"Category of Road=sideroad, Site of Injury No1=forearm",Approximate Speed=40 - 80 km/h,0.032,0.619,1.382
+Approximate Speed=less than 40 km/h,"Road Signals Exist=no, severity_label=low",0.152,0.594,1.381
+Collision With=three wheeler,"Helmet Worn=yes, Road Signals Exist=no",0.028,0.564,1.381
+"Collision With=three wheeler, Visiblity=adequate",Road Signals Exist=no,0.033,0.857,1.38
+"Road Type=bend, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.031,0.874,1.379
+"Collision With=animal, Road Condition=poor",Road Signals Exist=no,0.039,0.856,1.378
+"Collision With=motorbike, Road Type=junction",Visiblity=adequate,0.03,0.873,1.378
+"Category of Road=sideroad, Site of Injury No1=elbow region",Approximate Speed=40 - 80 km/h,0.022,0.618,1.378
+Collision With=three wheeler,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.028,0.557,1.377
+"Road Signals Exist=no, Site of Injury No1=shoulder injury",Helmet Worn=yes,0.024,0.728,1.377
+"Category of Road=highway, Collision With=animal",Mode Of Travel During Accident=motor cyclist,0.029,0.826,1.377
+"Collision With=animal, Time of Collision=18:00 - 21:00",Mode Of Travel During Accident=motor cyclist,0.022,0.826,1.376
+"Road Condition=good, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.063,0.872,1.376
+"Collision With=motorbike, Mode Of Travel During Accident=bicycle",Road Signals Exist=no,0.032,0.854,1.375
+"Mode Of Travel During Accident=bicycle, Road Condition=good",Visiblity=adequate,0.059,0.871,1.375
+Collision With=animal,"Helmet Worn=yes, Road Signals Exist=no",0.09,0.561,1.374
+Site of Injury No1=head injury,Road Signals Exist=no,0.027,0.854,1.374
+"Road Signals Exist=no, Site of Injury No1=shoulder clavicle",Helmet Worn=yes,0.024,0.726,1.374
+"Mode Of Travel During Accident=motorbike pillion rider, Visiblity=adequate",Road Condition=good,0.04,0.712,1.374
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=forearm",Category of Road=sideroad,0.032,0.791,1.374
+"Category of Road=sideroad, Site of Injury No1=knee",Approximate Speed=40 - 80 km/h,0.03,0.615,1.373
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=shoulder injury",Mode Of Travel During Accident=motor cyclist,0.027,0.824,1.373
+"Helmet Worn=no, Road Condition=good",Mode Of Travel During Accident=motor cyclist,0.029,0.824,1.373
+"Road Type=bend, Site of Injury No1=forearm",Helmet Worn=yes,0.025,0.726,1.373
+"Collision With=motorbike, Visiblity=adequate",Road Condition=good,0.11,0.711,1.373
+"Time of Collision=18:00 - 21:00, Visiblity=poor",Approximate Speed=40 - 80 km/h,0.025,0.615,1.372
+Collision With=animal,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.104,0.648,1.372
+Collision With=three wheeler,"Road Signals Exist=no, Visiblity=adequate",0.033,0.669,1.37
+"Approximate Speed=less than 40 km/h, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.047,0.868,1.37
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=forearm",Mode Of Travel During Accident=motor cyclist,0.034,0.822,1.369
+"Helmet Worn=yes, Road Type=junction",Road Condition=good,0.048,0.71,1.369
+"Road Condition=good, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.056,0.614,1.369
+"Mode Of Travel During Accident=motorbike pillion rider, Visiblity=adequate",Road Signals Exist=no,0.048,0.85,1.369
+"Category of Road=sideroad, Site of Injury No1=hand",Visiblity=adequate,0.025,0.867,1.369
+"Collision With=fall from vehicle, Time of Collision=18:00 - 21:00",Road Signals Exist=no,0.029,0.85,1.368
+"Road Type=straight, Visiblity=poor",Road Signals Exist=no,0.069,0.85,1.368
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=foot",Category of Road=sideroad,0.022,0.787,1.368
+"Helmet Worn=yes, Road Type=junction",Visiblity=adequate,0.059,0.867,1.368
+"Road Type=bend, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.051,0.866,1.367
+"Category of Road=sideroad, Site of Injury No1=shoulder injury",Helmet Worn=yes,0.028,0.723,1.367
+Site of Injury No1=shoulder injury,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.032,0.646,1.367
+Collision With=three wheeler,"Helmet Worn=yes, severity_label=low",0.026,0.531,1.366
+"Mode Of Travel During Accident=motorbike pillion rider, Road Type=straight",Road Signals Exist=no,0.029,0.848,1.366
+"Approximate Speed=40 - 80 km/h, Time of Collision=15:00 - 18:00",Category of Road=sideroad,0.067,0.786,1.366
+"Collision With=three wheeler, Road Condition=good",Visiblity=adequate,0.026,0.865,1.365
+Collision With=three wheeler,"Road Signals Exist=no, severity_label=low",0.029,0.587,1.365
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=shoulder injury",Category of Road=sideroad,0.029,0.785,1.364
+"Road Condition=good, Site of Injury No1=shoulder clavicle",Road Signals Exist=no,0.023,0.847,1.364
+"Approximate Speed=40 - 80 km/h, Visiblity=poor",Mode Of Travel During Accident=motor cyclist,0.08,0.818,1.363
+"Road Condition=poor, Time of Collision=18:00 - 21:00",Road Signals Exist=no,0.042,0.846,1.363
+"Road Signals Exist=no, Site of Injury No1=knee",Helmet Worn=yes,0.033,0.72,1.362
+Road Type=straight,Road Signals Exist=no,0.295,0.846,1.362
+"Collision With=three wheeler, Road Signals Exist=no",Helmet Worn=yes,0.028,0.72,1.361
+"Site of Injury No1=shoulder clavicle, Visiblity=adequate",Road Signals Exist=no,0.027,0.845,1.361
+"Helmet Worn=yes, Mode Of Travel During Accident=motorbike pillion rider",Road Condition=good,0.039,0.705,1.361
+"Road Condition=good, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.078,0.862,1.361
+"Road Condition=poor, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.035,0.845,1.36
+"Category of Road=sideroad, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.06,0.861,1.359
+"Road Type=bend, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.056,0.861,1.359
+Road Type=bend,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.18,0.55,1.358
+"Category of Road=sideroad, Helmet Worn=no",Mode Of Travel During Accident=motor cyclist,0.039,0.815,1.358
+"Collision With=three wheeler, Helmet Worn=yes",Road Signals Exist=no,0.028,0.843,1.358
+Road Type=junction,Visiblity=adequate,0.094,0.86,1.357
+Collision With=animal,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.086,0.539,1.356
+"Category of Road=sideroad, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.094,0.859,1.356
+"Approximate Speed=less than 40 km/h, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.028,0.859,1.355
+"Collision With=animal, Road Condition=poor",Mode Of Travel During Accident=motor cyclist,0.037,0.813,1.354
+Collision With=animal,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.097,0.608,1.354
+"Approximate Speed=less than 40 km/h, Category of Road=highway",Visiblity=adequate,0.057,0.858,1.354
+Collision With=animal,Mode Of Travel During Accident=motor cyclist,0.13,0.813,1.353
+Collision With=three wheeler,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.027,0.538,1.353
+"Road Type=straight, Time of Collision=18:00 - 21:00",Approximate Speed=40 - 80 km/h,0.038,0.606,1.353
+"Collision With=animal, Road Signals Exist=no",Approximate Speed=40 - 80 km/h,0.067,0.606,1.352
+"Road Type=junction, Visiblity=adequate",Road Condition=good,0.066,0.701,1.352
+"Approximate Speed=less than 40 km/h, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.037,0.857,1.352
+"Site of Injury No1=foot, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.022,0.605,1.351
+"Approximate Speed=40 - 80 km/h, Time of Collision=18:00 - 21:00",Mode Of Travel During Accident=motor cyclist,0.062,0.81,1.35
+"Helmet Worn=yes, Mode Of Travel During Accident=motorbike pillion rider",Road Signals Exist=no,0.047,0.838,1.35
+"Site of Injury No1=leg, Visiblity=adequate",Category of Road=sideroad,0.022,0.777,1.349
+"Mode Of Travel During Accident=motorbike pillion rider, Road Condition=good",Road Signals Exist=no,0.04,0.838,1.349
+"Collision With=three wheeler, Road Condition=good",Road Signals Exist=no,0.025,0.838,1.349
+"Category of Road=sideroad, Site of Injury No1=foot",Approximate Speed=40 - 80 km/h,0.022,0.605,1.349
+"Approximate Speed=less than 40 km/h, Road Condition=good",Visiblity=adequate,0.138,0.855,1.349
+Road Type=junction,"Helmet Worn=yes, Road Signals Exist=no",0.06,0.551,1.348
+"Category of Road=sideroad, Collision With=three wheeler",Visiblity=adequate,0.026,0.854,1.348
+"Approximate Speed=40 - 80 km/h, Road Condition=poor",Mode Of Travel During Accident=motor cyclist,0.12,0.809,1.347
+Collision With=animal,"Helmet Worn=yes, severity_label=low",0.084,0.524,1.347
+"Collision With=three wheeler, Road Signals Exist=no",Visiblity=adequate,0.033,0.854,1.347
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=motorbike pillion rider",Helmet Worn=yes,0.021,0.712,1.347
+Road Type=straight,"Road Condition=good, Visiblity=adequate",0.198,0.567,1.346
+"Category of Road=sideroad, Time of Collision=06:00 - 09:00",Road Condition=good,0.049,0.697,1.346
+"Collision With=three wheeler, Helmet Worn=yes",Visiblity=adequate,0.028,0.853,1.346
+"Road Signals Exist=no, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.11,0.853,1.346
+"Road Condition=good, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.086,0.853,1.346
+Visiblity=poor,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.087,0.535,1.345
+"Category of Road=highway, Collision With=motorbike",Visiblity=adequate,0.046,0.852,1.344
+"Helmet Worn=yes, Road Condition=poor",Road Signals Exist=no,0.144,0.835,1.344
+"Category of Road=highway, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.025,0.852,1.344
+"Road Condition=good, Site of Injury No1=knee",Approximate Speed=40 - 80 km/h,0.025,0.602,1.344
+"Approximate Speed=40 - 80 km/h, Collision With=motorbike",Visiblity=adequate,0.077,0.851,1.343
+"Approximate Speed=40 - 80 km/h, Collision With=animal",Road Condition=good,0.06,0.696,1.343
+Site of Injury No1=shoulder injury,Category of Road=sideroad,0.039,0.773,1.343
+"Site of Injury No1=shoulder injury, Visiblity=adequate",Helmet Worn=yes,0.026,0.71,1.343
+"Helmet Worn=yes, Site of Injury No1=foot",Category of Road=sideroad,0.024,0.772,1.342
+Road Type=bend,"Helmet Worn=yes, severity_label=low",0.171,0.521,1.34
+"Collision With=animal, Visiblity=adequate",Road Condition=good,0.065,0.694,1.34
+"Site of Injury No1=elbow region, Visiblity=adequate",Category of Road=sideroad,0.028,0.771,1.34
+"Category of Road=highway, Road Type=straight",Approximate Speed=40 - 80 km/h,0.072,0.6,1.339
+Site of Injury No1=shoulder injury,"Category of Road=sideroad, Visiblity=adequate",0.03,0.607,1.339
+"Mode Of Travel During Accident=bicycle, Visiblity=adequate",Road Signals Exist=no,0.074,0.831,1.338
+Collision With=animal,Helmet Worn=yes,0.113,0.707,1.338
+"Road Condition=poor, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.046,0.847,1.337
+Road Type=junction,"Helmet Worn=yes, Visiblity=adequate",0.059,0.542,1.337
+Visiblity=poor,Approximate Speed=40 - 80 km/h,0.098,0.599,1.336
+"Road Signals Exist=no, Site of Injury No1=hand",Visiblity=adequate,0.024,0.847,1.336
+"Collision With=motorbike, Road Condition=good",Visiblity=adequate,0.11,0.846,1.335
+Helmet Worn=no,Mode Of Travel During Accident=motor cyclist,0.046,0.801,1.334
+"Approximate Speed=40 - 80 km/h, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.043,0.845,1.333
+"Time of Collision=15:00 - 18:00, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.071,0.597,1.333
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=knee",Category of Road=sideroad,0.03,0.767,1.332
+"Approximate Speed=less than 40 km/h, Collision With=fall from vehicle",Visiblity=adequate,0.067,0.844,1.332
+Road Condition=poor,"Road Signals Exist=no, severity_label=low",0.155,0.572,1.331
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=elbow region",Category of Road=sideroad,0.022,0.766,1.331
+"Road Signals Exist=no, Site of Injury No1=humerus region",Helmet Worn=yes,0.022,0.703,1.33
+"Road Signals Exist=no, Road Type=junction",Road Condition=good,0.065,0.689,1.33
+"Helmet Worn=yes, Time of Collision=21:00 - 00:00",Category of Road=sideroad,0.025,0.765,1.329
+"Road Signals Exist=no, Site of Injury No1=forearm",Helmet Worn=yes,0.037,0.703,1.329
+"Category of Road=sideroad, Site of Injury No1=leg",Visiblity=adequate,0.022,0.842,1.329
+"Collision With=motorbike, Helmet Worn=yes",Road Condition=good,0.074,0.689,1.329
+"Road Condition=good, Site of Injury No1=knee",Helmet Worn=yes,0.029,0.703,1.329
+"Approximate Speed=40 - 80 km/h, Time of Collision=09:00 - 12:00",Mode Of Travel During Accident=motor cyclist,0.068,0.798,1.329
+"Collision With=motorbike, Road Signals Exist=no",Road Condition=good,0.104,0.688,1.329
+"Road Condition=good, Time of Collision=18:00 - 21:00",Approximate Speed=40 - 80 km/h,0.051,0.595,1.328
+"Collision With=fall from vehicle, Mode Of Travel During Accident=bicycle",Road Signals Exist=no,0.032,0.825,1.328
+Site of Injury No1=shoulder injury,"Visiblity=adequate, severity_label=low",0.031,0.623,1.328
+Category of Road=highway,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.117,0.628,1.328
+"Approximate Speed=40 - 80 km/h, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.072,0.841,1.327
+Mode Of Travel During Accident=motorbike pillion rider,"Helmet Worn=yes, Visiblity=adequate",0.044,0.537,1.326
+"Time of Collision=09:00 - 12:00, Visiblity=adequate",Road Signals Exist=no,0.11,0.824,1.326
+"Collision With=animal, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.056,0.595,1.326
+"Category of Road=sideroad, Mode Of Travel During Accident=bicycle",Visiblity=adequate,0.067,0.84,1.326
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=facial injury",Road Condition=good,0.022,0.687,1.326
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=knee",Mode Of Travel During Accident=motor cyclist,0.031,0.796,1.326
+"Collision With=motorbike, Time of Collision=18:00 - 21:00",Road Condition=good,0.026,0.687,1.325
+"Road Condition=poor, Visiblity=poor",Road Signals Exist=no,0.054,0.823,1.325
+Road Condition=poor,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.143,0.527,1.325
+"Approximate Speed=40 - 80 km/h, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.071,0.839,1.325
+"Road Condition=good, Site of Injury No1=forearm",Visiblity=adequate,0.034,0.839,1.325
+"Mode Of Travel During Accident=motor cyclist, Site of Injury No1=knee",Approximate Speed=40 - 80 km/h,0.031,0.593,1.323
+Road Type=straight,"Road Signals Exist=no, Visiblity=adequate",0.225,0.646,1.323
+"Road Condition=poor, Visiblity=adequate",Road Signals Exist=no,0.168,0.821,1.322
+"Collision With=three wheeler, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.023,0.592,1.322
+Road Type=junction,Road Condition=good,0.074,0.685,1.321
+"Category of Road=sideroad, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.089,0.837,1.321
+"Road Signals Exist=no, Site of Injury No1=elbow region",Helmet Worn=yes,0.023,0.698,1.32
+Road Condition=poor,Road Signals Exist=no,0.223,0.82,1.32
+"Time of Collision=21:00 - 00:00, Visiblity=adequate",Category of Road=sideroad,0.022,0.76,1.32
+Site of Injury No1=hand,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.031,0.593,1.32
+Visiblity=poor,"Helmet Worn=yes, Road Signals Exist=no",0.088,0.539,1.319
+"Mode Of Travel During Accident=bicycle, Road Condition=good",Road Signals Exist=no,0.056,0.819,1.319
+"Site of Injury No1=hand, Visiblity=adequate",Category of Road=sideroad,0.025,0.758,1.318
+"Approximate Speed=40 - 80 km/h, Road Type=straight",Mode Of Travel During Accident=motor cyclist,0.154,0.791,1.317
+"Category of Road=highway, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.033,0.835,1.317
+"Road Signals Exist=no, Road Type=bend",Helmet Worn=yes,0.156,0.696,1.317
+"Mode Of Travel During Accident=motorbike pillion rider, Road Condition=good",Visiblity=adequate,0.04,0.834,1.317
+"Site of Injury No1=knee, Visiblity=adequate",Helmet Worn=yes,0.036,0.696,1.316
+Road Type=straight,"Helmet Worn=yes, Road Signals Exist=no",0.187,0.538,1.316
+"Road Signals Exist=no, Site of Injury No1=foot",Helmet Worn=yes,0.022,0.696,1.316
+Road Type=junction,"Category of Road=sideroad, Visiblity=adequate",0.065,0.597,1.316
+Helmet Worn=no,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.034,0.591,1.316
+Category of Road=highway,"Road Signals Exist=no, severity_label=low",0.106,0.566,1.316
+Approximate Speed=40 - 80 km/h,"Category of Road=sideroad, severity_label=low",0.256,0.572,1.316
+Site of Injury No1=shoulder injury,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.027,0.532,1.316
+"Approximate Speed=40 - 80 km/h, Road Signals Exist=no",Mode Of Travel During Accident=motor cyclist,0.258,0.79,1.315
+"Site of Injury No1=foot, Visiblity=adequate",Helmet Worn=yes,0.025,0.695,1.315
+"Mode Of Travel During Accident=bicycle, Visiblity=adequate",Category of Road=sideroad,0.067,0.756,1.314
+"Approximate Speed=40 - 80 km/h, Category of Road=sideroad",Mode Of Travel During Accident=motor cyclist,0.263,0.789,1.314
+"Road Condition=good, Time of Collision=12:00 -15:00",Visiblity=adequate,0.066,0.832,1.312
+"Mode Of Travel During Accident=bicycle, Road Type=straight",Visiblity=adequate,0.043,0.831,1.312
+"Collision With=motorbike, Road Type=bend",Visiblity=adequate,0.06,0.831,1.311
+"Road Condition=good, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.07,0.693,1.311
+"Helmet Worn=yes, Site of Injury No1=elbow region",Category of Road=sideroad,0.023,0.754,1.31
+"Site of Injury No1=forearm, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.033,0.587,1.31
+Mode Of Travel During Accident=motor cyclist,Approximate Speed=40 - 80 km/h,0.352,0.587,1.31
+Approximate Speed=40 - 80 km/h,Mode Of Travel During Accident=motor cyclist,0.352,0.786,1.31
+Time of Collision=06:00 - 09:00,"Road Condition=good, Visiblity=adequate",0.063,0.551,1.309
+"Collision With=motorbike, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.028,0.829,1.309
+"Road Condition=good, Site of Injury No1=foot",Visiblity=adequate,0.023,0.829,1.308
+"Road Condition=good, Road Type=straight",Approximate Speed=40 - 80 km/h,0.147,0.586,1.307
+"Approximate Speed=40 - 80 km/h, Visiblity=poor",Category of Road=sideroad,0.074,0.752,1.307
+"Road Signals Exist=no, Site of Injury No1=leg",Visiblity=adequate,0.022,0.828,1.307
+"Category of Road=sideroad, Road Condition=poor",Approximate Speed=40 - 80 km/h,0.133,0.586,1.307
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=motor cyclist",Visiblity=adequate,0.104,0.828,1.307
+"Collision With=fall from vehicle, Road Condition=good",Helmet Worn=yes,0.062,0.691,1.306
+Site of Injury No1=shoulder injury,"Road Signals Exist=no, severity_label=low",0.028,0.562,1.306
+"Approximate Speed=less than 40 km/h, Category of Road=sideroad",Visiblity=adequate,0.144,0.828,1.306
+"Category of Road=sideroad, Site of Injury No1=foot",Visiblity=adequate,0.029,0.827,1.305
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=bicycle",Visiblity=adequate,0.057,0.827,1.305
+"Helmet Worn=yes, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.087,0.811,1.305
+"Road Signals Exist=no, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.084,0.827,1.305
+"Approximate Speed=less than 40 km/h, Helmet Worn=yes",Visiblity=adequate,0.111,0.827,1.305
+"Category of Road=sideroad, Collision With=motorbike",Road Signals Exist=no,0.102,0.81,1.305
+Approximate Speed=less than 40 km/h,Visiblity=adequate,0.212,0.826,1.304
+Road Type=straight,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.181,0.518,1.304
+"Road Signals Exist=no, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.062,0.826,1.304
+"Time of Collision=18:00 - 21:00, Visiblity=poor",Category of Road=sideroad,0.031,0.75,1.303
+"Collision With=motorbike, Helmet Worn=yes",Road Signals Exist=no,0.087,0.809,1.303
+"Collision With=motorbike, Visiblity=adequate",Road Signals Exist=no,0.125,0.809,1.302
+"Mode Of Travel During Accident=bicycle, Road Signals Exist=no",Visiblity=adequate,0.074,0.825,1.302
+"Road Type=straight, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.061,0.825,1.301
+"Approximate Speed=40 - 80 km/h, Visiblity=adequate",Road Condition=good,0.234,0.674,1.301
+"Category of Road=highway, Time of Collision=12:00 -15:00",Visiblity=adequate,0.025,0.824,1.301
+Road Type=straight,"Road Signals Exist=no, severity_label=low",0.195,0.559,1.301
+"Site of Injury No1=facial injury, Visiblity=adequate",Category of Road=sideroad,0.037,0.748,1.3
+"Collision With=animal, Visiblity=adequate",Road Signals Exist=no,0.076,0.808,1.3
+"Collision With=fall from vehicle, Road Condition=good",Visiblity=adequate,0.074,0.824,1.3
+"Road Condition=good, Site of Injury No1=shoulder clavicle",Visiblity=adequate,0.023,0.824,1.3
+Site of Injury No1=knee,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.045,0.584,1.3
+"Helmet Worn=yes, Visiblity=adequate",Road Condition=good,0.273,0.673,1.299
+Road Condition=good,"Helmet Worn=yes, Visiblity=adequate",0.273,0.526,1.299
+"Collision With=motorbike, Time of Collision=15:00 - 18:00",Road Condition=good,0.022,0.673,1.299
+"Approximate Speed=less than 40 km/h, Road Type=junction",Category of Road=sideroad,0.046,0.747,1.299
+Site of Injury No1=foot,"Category of Road=sideroad, severity_label=low",0.029,0.564,1.299
+"Road Signals Exist=no, Site of Injury No1=forearm",Approximate Speed=40 - 80 km/h,0.03,0.582,1.299
+"Site of Injury No1=forearm, Visiblity=adequate",Category of Road=sideroad,0.042,0.747,1.298
+"Collision With=motorbike, Road Condition=good",Road Signals Exist=no,0.104,0.806,1.298
+Road Condition=poor,"Helmet Worn=yes, Road Signals Exist=no",0.144,0.53,1.298
+"Time of Collision=15:00 - 18:00, Visiblity=adequate",Category of Road=sideroad,0.089,0.747,1.298
+"Approximate Speed=40 - 80 km/h, Time of Collision=06:00 - 09:00",Category of Road=sideroad,0.038,0.747,1.298
+"Collision With=three wheeler, Visiblity=adequate",Road Condition=good,0.026,0.672,1.297
+Approximate Speed=40 - 80 km/h,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.261,0.583,1.297
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.028,0.581,1.297
+"Collision With=motorbike, Road Signals Exist=no",Visiblity=adequate,0.125,0.822,1.297
+"Road Condition=good, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.064,0.805,1.297
+"Road Condition=good, Visiblity=poor",Helmet Worn=yes,0.065,0.685,1.295
+Time of Collision=21:00 - 00:00,Approximate Speed=40 - 80 km/h,0.032,0.58,1.295
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motor cyclist",Category of Road=sideroad,0.263,0.745,1.295
+"Road Type=bend, Visiblity=poor",Helmet Worn=yes,0.044,0.684,1.295
+"Site of Injury No1=knee, Visiblity=adequate",Approximate Speed=40 - 80 km/h,0.03,0.58,1.294
+"Mode Of Travel During Accident=motorbike pillion rider, Road Signals Exist=no",Road Condition=good,0.04,0.67,1.294
+"Road Type=straight, Time of Collision=15:00 - 18:00",Helmet Worn=yes,0.037,0.684,1.293
+Road Type=bend,"Helmet Worn=yes, Visiblity=adequate",0.172,0.524,1.293
+"Site of Injury No1=elbow region, Visiblity=adequate",Road Condition=good,0.025,0.67,1.292
+Collision With=three wheeler,"Visiblity=adequate, severity_label=low",0.03,0.607,1.292
+"Collision With=animal, Road Condition=poor",Approximate Speed=40 - 80 km/h,0.026,0.579,1.292
+"Helmet Worn=yes, Visiblity=poor",Road Signals Exist=no,0.088,0.802,1.292
+"Road Condition=good, Road Type=bend",Visiblity=adequate,0.154,0.818,1.291
+Collision With=three wheeler,"Road Condition=good, Road Signals Exist=no",0.025,0.508,1.291
+"Road Condition=good, Site of Injury No1=foot",Category of Road=sideroad,0.021,0.743,1.291
+"Category of Road=sideroad, Collision With=motorbike",Visiblity=adequate,0.103,0.818,1.291
+"Helmet Worn=yes, Time of Collision=09:00 - 12:00",Visiblity=adequate,0.088,0.818,1.291
+"Collision With=animal, Road Type=bend",Road Signals Exist=no,0.03,0.802,1.291
+"Road Condition=good, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.081,0.802,1.291
+Approximate Speed=40 - 80 km/h,Category of Road=sideroad,0.333,0.743,1.29
+Category of Road=sideroad,Approximate Speed=40 - 80 km/h,0.333,0.578,1.29
+"Time of Collision=18:00 - 21:00, Visiblity=adequate",Road Signals Exist=no,0.075,0.801,1.29
+"Approximate Speed=40 - 80 km/h, Collision With=motorbike",Road Condition=good,0.06,0.668,1.29
+"Road Signals Exist=no, Site of Injury No1=elbow region",Road Condition=good,0.022,0.668,1.29
+"Collision With=three wheeler, Mode Of Travel During Accident=motor cyclist",Visiblity=adequate,0.028,0.817,1.29
+"Collision With=motorbike, Road Type=straight",Visiblity=adequate,0.061,0.817,1.289
+"Road Condition=good, Time of Collision=18:00 - 21:00",Helmet Worn=yes,0.058,0.681,1.289
+Mode Of Travel During Accident=motorbike pillion rider,Helmet Worn=yes,0.056,0.681,1.288
+Road Type=junction,"Mode Of Travel During Accident=motor cyclist, Road Signals Exist=no",0.056,0.512,1.288
+"Category of Road=sideroad, Mode Of Travel During Accident=bicycle",Road Signals Exist=no,0.064,0.8,1.288
+"Road Signals Exist=no, Site of Injury No1=shoulder clavicle",Visiblity=adequate,0.027,0.816,1.288
+"Helmet Worn=yes, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.066,0.799,1.287
+"Time of Collision=12:00 -15:00, Visiblity=adequate",Road Condition=good,0.066,0.667,1.287
+"Category of Road=highway, Collision With=fall from vehicle",Visiblity=adequate,0.033,0.815,1.287
+Visiblity=poor,Road Signals Exist=no,0.131,0.799,1.286
+Road Condition=good,"Visiblity=adequate, severity_label=low",0.313,0.604,1.286
+"Collision With=motorbike, Helmet Worn=yes",Visiblity=adequate,0.088,0.815,1.286
+"Road Type=straight, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.05,0.68,1.286
+"Mode Of Travel During Accident=motor cyclist, Visiblity=poor",Category of Road=sideroad,0.083,0.74,1.286
+"Road Condition=good, Site of Injury No1=knee",Visiblity=adequate,0.034,0.815,1.286
+"Category of Road=sideroad, Road Condition=good",Visiblity=adequate,0.278,0.815,1.285
+"Road Type=straight, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.037,0.814,1.285
+"Road Signals Exist=no, Site of Injury No1=forearm",Visiblity=adequate,0.043,0.814,1.285
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.04,0.814,1.284
+"Mode Of Travel During Accident=bicycle, Visiblity=adequate",Road Condition=good,0.059,0.665,1.284
+"Approximate Speed=40 - 80 km/h, Time of Collision=18:00 - 21:00",Road Condition=good,0.051,0.665,1.284
+"Road Type=straight, Time of Collision=15:00 - 18:00",Approximate Speed=40 - 80 km/h,0.031,0.575,1.284
+"Road Type=straight, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.044,0.813,1.283
+"Collision With=animal, Visiblity=poor",Category of Road=sideroad,0.031,0.738,1.283
+Road Type=bend,"Category of Road=sideroad, Road Signals Exist=no",0.179,0.546,1.283
+"Helmet Worn=yes, Time of Collision=15:00 - 18:00",Visiblity=adequate,0.074,0.813,1.283
+"Road Signals Exist=no, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.087,0.678,1.282
+Visiblity=adequate,Road Condition=good,0.421,0.664,1.282
+Road Condition=good,Visiblity=adequate,0.421,0.813,1.282
+"Category of Road=sideroad, Collision With=fall from vehicle",Visiblity=adequate,0.09,0.812,1.282
+"Category of Road=sideroad, Site of Injury No1=foot",Helmet Worn=yes,0.024,0.677,1.281
+Time of Collision=21:00 - 00:00,"Category of Road=sideroad, severity_label=low",0.03,0.557,1.281
+"Road Signals Exist=no, Site of Injury No1=foot",Category of Road=sideroad,0.023,0.737,1.281
+Category of Road=highway,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.097,0.518,1.281
+"Approximate Speed=40 - 80 km/h, Time of Collision=09:00 - 12:00",Road Condition=good,0.057,0.664,1.281
+"Collision With=fall from vehicle, Road Type=straight",Visiblity=adequate,0.064,0.811,1.281
+"Road Signals Exist=no, Site of Injury No1=forearm",Category of Road=sideroad,0.039,0.737,1.281
+"Site of Injury No1=facial injury, Visiblity=adequate",Road Signals Exist=no,0.039,0.795,1.28
+Category of Road=sideroad,"Visiblity=adequate, severity_label=low",0.346,0.601,1.279
+"Approximate Speed=40 - 80 km/h, Road Type=bend",Visiblity=adequate,0.168,0.811,1.279
+Mode Of Travel During Accident=bicycle,"Road Signals Exist=no, Visiblity=adequate",0.074,0.624,1.279
+"Road Type=bend, Time of Collision=06:00 - 09:00",Road Condition=good,0.024,0.662,1.278
+"Collision With=animal, Helmet Worn=yes",Road Signals Exist=no,0.09,0.794,1.278
+Visiblity=poor,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.099,0.604,1.278
+Site of Injury No1=foot,"Mode Of Travel During Accident=motor cyclist, severity_label=low",0.03,0.574,1.278
+Approximate Speed=less than 40 km/h,"Road Condition=good, Visiblity=adequate",0.138,0.538,1.278
+"Helmet Worn=yes, Site of Injury No1=shoulder clavicle",Road Signals Exist=no,0.024,0.793,1.278
+"Road Type=straight, Visiblity=poor",Helmet Worn=yes,0.055,0.675,1.278
+Site of Injury No1=shoulder injury,Helmet Worn=yes,0.034,0.675,1.277
+"Road Type=bend, Site of Injury No1=forearm",Visiblity=adequate,0.028,0.809,1.277
+Collision With=three wheeler,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.03,0.603,1.276
+"Site of Injury No1=forearm, Visiblity=adequate",Helmet Worn=yes,0.038,0.674,1.276
+"Road Condition=good, Site of Injury No1=elbow region",Category of Road=sideroad,0.022,0.734,1.276
+"Mode Of Travel During Accident=motor cyclist, Road Type=junction",Category of Road=sideroad,0.048,0.734,1.276
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=21:00 - 00:00",Category of Road=sideroad,0.026,0.734,1.275
+"Helmet Worn=yes, Time of Collision=06:00 - 09:00",Visiblity=adequate,0.051,0.808,1.275
+"Approximate Speed=40 - 80 km/h, Helmet Worn=yes",Road Condition=good,0.227,0.661,1.275
+"Road Signals Exist=no, Visiblity=poor",Helmet Worn=yes,0.088,0.674,1.275
+"Time of Collision=12:00 -15:00, Visiblity=adequate",Road Signals Exist=no,0.079,0.792,1.275
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=bicycle",Category of Road=sideroad,0.051,0.734,1.275
+Approximate Speed=40 - 80 km/h,Road Condition=good,0.296,0.661,1.275
+Road Condition=good,Approximate Speed=40 - 80 km/h,0.296,0.571,1.275
+"Category of Road=sideroad, Time of Collision=12:00 -15:00",Visiblity=adequate,0.07,0.808,1.275
+"Category of Road=sideroad, Road Type=bend",Visiblity=adequate,0.224,0.808,1.274
+"Road Signals Exist=no, Time of Collision=21:00 - 00:00",Category of Road=sideroad,0.023,0.733,1.274
+"Mode Of Travel During Accident=bicycle, Road Condition=good",Category of Road=sideroad,0.05,0.733,1.274
+Category of Road=highway,Visiblity=adequate,0.151,0.807,1.274
+Road Condition=good,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.267,0.515,1.274
+Road Type=bend,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.197,0.602,1.273
+"Category of Road=sideroad, Site of Injury No1=elbow region",Visiblity=adequate,0.028,0.806,1.273
+Mode Of Travel During Accident=bicycle,"Category of Road=sideroad, Road Signals Exist=no",0.064,0.541,1.272
+"Road Signals Exist=no, Site of Injury No1=shoulder injury",Visiblity=adequate,0.027,0.806,1.272
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=elbow region",Visiblity=adequate,0.023,0.806,1.271
+Visiblity=poor,"Category of Road=sideroad, Road Signals Exist=no",0.088,0.541,1.271
+"Category of Road=sideroad, Site of Injury No1=forearm",Helmet Worn=yes,0.035,0.672,1.271
+"Category of Road=sideroad, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.068,0.789,1.271
+Collision With=motorbike,"Road Condition=good, Visiblity=adequate",0.11,0.535,1.27
+"Road Condition=poor, Road Type=bend",Helmet Worn=yes,0.092,0.671,1.27
+"Helmet Worn=no, Road Type=bend",Visiblity=adequate,0.022,0.805,1.27
+Visiblity=poor,Helmet Worn=yes,0.11,0.671,1.27
+"Collision With=three wheeler, Mode Of Travel During Accident=motor cyclist",Road Signals Exist=no,0.027,0.788,1.27
+"Approximate Speed=40 - 80 km/h, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.067,0.788,1.269
+"Collision With=motorbike, Time of Collision=12:00 -15:00",Road Signals Exist=no,0.028,0.788,1.269
+"Time of Collision=06:00 - 09:00, Visiblity=adequate",Category of Road=sideroad,0.06,0.73,1.269
+"Road Type=bend, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.04,0.67,1.268
+Road Condition=poor,"Road Signals Exist=no, Visiblity=adequate",0.168,0.619,1.268
+"Helmet Worn=yes, Site of Injury No1=foot",Visiblity=adequate,0.025,0.803,1.267
+"Approximate Speed=40 - 80 km/h, Mode Of Travel During Accident=motorbike pillion rider",Visiblity=adequate,0.028,0.803,1.267
+Road Type=bend,Visiblity=adequate,0.263,0.803,1.267
+"Category of Road=sideroad, Time of Collision=09:00 - 12:00",Road Signals Exist=no,0.086,0.786,1.266
+"Helmet Worn=yes, Site of Injury No1=elbow region",Visiblity=adequate,0.024,0.802,1.266
+Collision With=three wheeler,Helmet Worn=yes,0.033,0.669,1.265
+Road Type=junction,"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",0.056,0.512,1.265
+Approximate Speed=40 - 80 km/h,"Category of Road=sideroad, Visiblity=adequate",0.257,0.573,1.265
+"Category of Road=sideroad, Collision With=fall from vehicle",Helmet Worn=yes,0.074,0.669,1.265
+Road Signals Exist=no,"Helmet Worn=yes, Visiblity=adequate",0.318,0.512,1.265
+"Helmet Worn=yes, Visiblity=adequate",Road Signals Exist=no,0.318,0.785,1.265
+"Road Signals Exist=no, Site of Injury No1=elbow region",Category of Road=sideroad,0.024,0.728,1.265
+"Helmet Worn=yes, Site of Injury No1=facial injury",Road Signals Exist=no,0.028,0.785,1.265
+"Road Type=straight, Time of Collision=12:00 -15:00",Visiblity=adequate,0.042,0.801,1.264
+"Approximate Speed=40 - 80 km/h, Time of Collision=12:00 -15:00",Visiblity=adequate,0.053,0.801,1.264
+"Category of Road=sideroad, Mode Of Travel During Accident=motorbike pillion rider",Visiblity=adequate,0.036,0.801,1.264
+Visiblity=adequate,"Road Signals Exist=no, severity_label=low",0.344,0.543,1.263
+Approximate Speed=40 - 80 km/h,"Visiblity=adequate, severity_label=low",0.266,0.593,1.263
+Collision With=three wheeler,Road Signals Exist=no,0.039,0.784,1.262
+"Mode Of Travel During Accident=motor cyclist, Time of Collision=06:00 - 09:00",Road Condition=good,0.045,0.653,1.261
+Collision With=car or van,Road Signals Exist=no,0.026,0.783,1.26
+"Approximate Speed=40 - 80 km/h, Site of Injury No1=forearm",Visiblity=adequate,0.033,0.798,1.26
+Road Type=junction,"Road Signals Exist=no, severity_label=low",0.059,0.542,1.259
+"Road Condition=good, Road Signals Exist=no",Helmet Worn=yes,0.262,0.665,1.258
+Site of Injury No1=foot,"Category of Road=sideroad, Visiblity=adequate",0.029,0.571,1.258
+"Mode Of Travel During Accident=motorbike pillion rider, Road Signals Exist=no",Visiblity=adequate,0.048,0.797,1.258
+"Road Signals Exist=no, Site of Injury No1=knee",Visiblity=adequate,0.037,0.797,1.258
+"Road Signals Exist=no, Site of Injury No1=elbow region",Visiblity=adequate,0.026,0.797,1.258
+"Helmet Worn=yes, Time of Collision=18:00 - 21:00",Road Signals Exist=no,0.069,0.781,1.258
+Collision With=heavy vehicle,Road Condition=good,0.021,0.652,1.257
+"Helmet Worn=yes, Time of Collision=18:00 - 21:00",Road Condition=good,0.058,0.651,1.257
+Helmet Worn=yes,"Road Signals Exist=no, severity_label=low",0.286,0.541,1.257
+"Collision With=motorbike, Road Condition=poor",Visiblity=adequate,0.043,0.796,1.257
+"Helmet Worn=yes, Time of Collision=09:00 - 12:00",Road Condition=good,0.07,0.651,1.257
+"Category of Road=sideroad, Site of Injury No1=forearm",Visiblity=adequate,0.042,0.796,1.256
+Visiblity=adequate,"Category of Road=sideroad, severity_label=low",0.346,0.545,1.255
+"Collision With=animal, Road Condition=good",Road Signals Exist=no,0.071,0.779,1.255
+Road Condition=good,"Road Signals Exist=no, Visiblity=adequate",0.317,0.612,1.254
+Mode Of Travel During Accident=bicycle,"Category of Road=sideroad, Visiblity=adequate",0.067,0.568,1.253
+"Collision With=fall from vehicle, Road Signals Exist=no",Visiblity=adequate,0.126,0.794,1.253
+"Road Signals Exist=no, Site of Injury No1=shoulder injury",Mode Of Travel During Accident=motor cyclist,0.025,0.752,1.253
+"Road Type=bend, Time of Collision=18:00 - 21:00",Helmet Worn=yes,0.034,0.662,1.253
+"Site of Injury No1=knee, Visiblity=adequate",Category of Road=sideroad,0.037,0.721,1.253
+Helmet Worn=no,"Visiblity=adequate, severity_label=low",0.034,0.588,1.253
+"Category of Road=sideroad, Site of Injury No1=shoulder injury",Mode Of Travel During Accident=motor cyclist,0.029,0.752,1.253
+Visiblity=poor,Category of Road=sideroad,0.118,0.721,1.253
+"Road Condition=good, Road Type=straight",Helmet Worn=yes,0.166,0.662,1.253
+"Mode Of Travel During Accident=motor cyclist, Visiblity=adequate",Category of Road=sideroad,0.292,0.72,1.252
+Site of Injury No1=shoulder injury,"Category of Road=sideroad, Road Signals Exist=no",0.027,0.532,1.252
+"Road Type=straight, Site of Injury No1=knee",Visiblity=adequate,0.022,0.793,1.251
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Helmet Worn=yes,0.032,0.661,1.251
+"Time of Collision=09:00 - 12:00, Visiblity=adequate",Helmet Worn=yes,0.088,0.661,1.25
+"Approximate Speed=less than 40 km/h, Helmet Worn=yes",Road Condition=good,0.087,0.648,1.25
+"Mode Of Travel During Accident=motorbike pillion rider, Road Type=straight",Visiblity=adequate,0.027,0.791,1.249
+"Helmet Worn=yes, Time of Collision=12:00 -15:00",Visiblity=adequate,0.065,0.791,1.249
+"Collision With=fall from vehicle, Visiblity=adequate",Helmet Worn=yes,0.088,0.66,1.248
+"Collision With=animal, Road Signals Exist=no",Road Condition=good,0.071,0.646,1.247
+Collision With=three wheeler,"Road Condition=good, Visiblity=adequate",0.026,0.525,1.246
+Collision With=motorbike,"Road Signals Exist=no, Visiblity=adequate",0.125,0.608,1.246
+Visiblity=adequate,"Category of Road=sideroad, Road Signals Exist=no",0.336,0.53,1.245
+"Category of Road=sideroad, Road Signals Exist=no",Visiblity=adequate,0.336,0.789,1.245
+"Helmet Worn=yes, Time of Collision=15:00 - 18:00",Category of Road=sideroad,0.065,0.717,1.245
+"Helmet Worn=yes, Mode Of Travel During Accident=motorbike pillion rider",Visiblity=adequate,0.044,0.789,1.245
+"Collision With=fall from vehicle, Road Signals Exist=no",Helmet Worn=yes,0.104,0.658,1.245
+"Category of Road=sideroad, Road Condition=poor",Helmet Worn=yes,0.149,0.658,1.244
+Road Signals Exist=no,Helmet Worn=yes,0.408,0.658,1.244
+Helmet Worn=yes,Road Signals Exist=no,0.408,0.773,1.244
+"Approximate Speed=40 - 80 km/h, Collision With=motorbike",Road Signals Exist=no,0.07,0.772,1.244
+Road Type=bend,Helmet Worn=yes,0.215,0.657,1.244
+"Road Signals Exist=no, Time of Collision=12:00 -15:00",Visiblity=adequate,0.079,0.788,1.244
+Category of Road=sideroad,Visiblity=adequate,0.453,0.788,1.243
+Visiblity=adequate,Category of Road=sideroad,0.453,0.715,1.243
+Road Type=straight,Approximate Speed=40 - 80 km/h,0.194,0.557,1.243
+"Mode Of Travel During Accident=bicycle, Road Signals Exist=no",Category of Road=sideroad,0.064,0.715,1.242
+Approximate Speed=40 - 80 km/h,"Road Condition=good, Visiblity=adequate",0.234,0.523,1.242
+"Collision With=animal, Helmet Worn=yes",Road Condition=good,0.073,0.643,1.242
+"Time of Collision=18:00 - 21:00, Visiblity=adequate",Helmet Worn=yes,0.062,0.656,1.241
+"Category of Road=sideroad, Time of Collision=09:00 - 12:00",Helmet Worn=yes,0.072,0.656,1.24
+"Category of Road=sideroad, Collision With=animal",Road Signals Exist=no,0.075,0.77,1.24
+Road Signals Exist=no,Visiblity=adequate,0.488,0.786,1.24
+Visiblity=adequate,Road Signals Exist=no,0.488,0.77,1.24
+"Road Signals Exist=no, Time of Collision=12:00 -15:00",Road Condition=good,0.064,0.642,1.24
+"Collision With=fall from vehicle, Time of Collision=15:00 - 18:00",Road Signals Exist=no,0.028,0.77,1.24
+"Collision With=motorbike, Mode Of Travel During Accident=bicycle",Visiblity=adequate,0.03,0.785,1.239
+Helmet Worn=yes,Road Condition=good,0.339,0.642,1.239
+Road Condition=good,Helmet Worn=yes,0.339,0.655,1.239
+Approximate Speed=less than 40 km/h,"Category of Road=sideroad, Visiblity=adequate",0.144,0.561,1.236
+"Time of Collision=12:00 -15:00, Visiblity=adequate",Helmet Worn=yes,0.065,0.654,1.236
+Helmet Worn=no,"Category of Road=sideroad, Road Signals Exist=no",0.03,0.526,1.236
+"Road Signals Exist=no, Site of Injury No1=knee",Category of Road=sideroad,0.033,0.71,1.233
+Helmet Worn=yes,"Road Signals Exist=no, Visiblity=adequate",0.318,0.602,1.233
+"Road Signals Exist=no, Site of Injury No1=facial injury",Category of Road=sideroad,0.036,0.709,1.232
+Collision With=three wheeler,Visiblity=adequate,0.039,0.78,1.231
+Road Signals Exist=no,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.361,0.582,1.231
+"Category of Road=sideroad, Time of Collision=18:00 - 21:00",Road Signals Exist=no,0.073,0.765,1.231
+Approximate Speed=less than 40 km/h,"Visiblity=adequate, severity_label=low",0.148,0.578,1.231
+"Road Condition=good, Time of Collision=06:00 - 09:00",Road Signals Exist=no,0.055,0.764,1.23
+Category of Road=sideroad,"Road Signals Exist=no, severity_label=low",0.304,0.529,1.23
+"Approximate Speed=less than 40 km/h, Mode Of Travel During Accident=motor cyclist",Road Condition=good,0.08,0.636,1.228
+"Road Signals Exist=no, Time of Collision=15:00 - 18:00",Category of Road=sideroad,0.072,0.706,1.228
+"Category of Road=sideroad, Site of Injury No1=knee",Helmet Worn=yes,0.031,0.649,1.227
+Helmet Worn=yes,"Road Condition=good, Visiblity=adequate",0.273,0.516,1.225
+Helmet Worn=yes,"Category of Road=sideroad, Road Signals Exist=no",0.275,0.521,1.224
+Visiblity=adequate,Approximate Speed=40 - 80 km/h,0.348,0.549,1.224
+Approximate Speed=40 - 80 km/h,Visiblity=adequate,0.348,0.776,1.224
+Road Condition=good,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.3,0.579,1.224
+Road Signals Exist=no,Road Condition=good,0.394,0.634,1.223
+Road Condition=good,Road Signals Exist=no,0.394,0.76,1.223
+"Road Condition=poor, Time of Collision=15:00 - 18:00",Mode Of Travel During Accident=motor cyclist,0.036,0.734,1.223
+Road Type=straight,Helmet Worn=yes,0.225,0.646,1.222
+Collision With=fall from vehicle,"Road Signals Exist=no, Visiblity=adequate",0.126,0.596,1.22
+Collision With=motorbike,Road Condition=good,0.129,0.632,1.22
+"Helmet Worn=no, Mode Of Travel During Accident=motor cyclist",Road Condition=good,0.029,0.631,1.218
+"Road Condition=poor, Time of Collision=12:00 -15:00",Visiblity=adequate,0.032,0.771,1.217
+Road Condition=good,"Road Signals Exist=no, severity_label=low",0.271,0.523,1.215
+Category of Road=sideroad,"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",0.33,0.574,1.215
+"Helmet Worn=yes, Mode Of Travel During Accident=motor cyclist",Category of Road=sideroad,0.33,0.699,1.215
+"Collision With=fall from vehicle, Road Condition=poor",Visiblity=adequate,0.058,0.769,1.214
+Road Signals Exist=no,"Road Condition=good, Visiblity=adequate",0.317,0.511,1.213
+Helmet Worn=yes,"Visiblity=adequate, severity_label=low",0.301,0.569,1.213
+Helmet Worn=yes,Visiblity=adequate,0.405,0.766,1.209
+Visiblity=adequate,Helmet Worn=yes,0.405,0.639,1.209
+Road Type=straight,Visiblity=adequate,0.267,0.765,1.207

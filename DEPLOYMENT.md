@@ -128,7 +128,8 @@ The old root `supabase_model_integration.sql` was superseded by #2 and #3 and ha
 
 **How models are loaded and identified:**
 - **Loading:** artifacts are loaded on first use and cached per file. They are reloaded only if the file changes.
-- **XAI:** uses the same model root and loader as inference.
+- **Explanations (SHAP):** `POST /api/xai/explain` explains each doctor model with `shap.LinearExplainer`, ported from `Notebooks/Doctor_SHAP_Explainability.ipynb`. It uses the same model root, loader and row preparation as inference, and a background of 300 patients from `Preprocessed_Dataset.csv` (`random_state` 42). The background is built in memory on the first request, which takes a few seconds; nothing is written to disk. Transfer is explained for the label the tuned 62% threshold selects. Requires the `shap` package (in `requirements.txt`).
+- **Association rules:** `GET /api/government/association-rules` serves the plain-language rules of `Notebooks/Association_Rule_Mining.ipynb` (section 9) from `app/ml_models/association_rules/` (`association_rules_readable.json`, plus the notebook's summary as `association_rules_summary.json`). Nothing is mined at request time, and `mlxtend` is not a runtime dependency. A model root without this folder (for example an older Hugging Face bundle) falls back to the packaged copy. After re-running the notebook, install its outputs with `./copy_rules.sh <path to that run's model_summary.json>`.
 - **Fingerprint:** every stored prediction records a SHA-256 fingerprint of its contract, artifact and metadata, so the exact model is always identifiable.
 
 **Readiness:** `GET /health/models` shows `available`/`loadable` per model, with file names only. Models that aren't ready are also logged at startup.

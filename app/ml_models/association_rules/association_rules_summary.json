@@ -1,0 +1,39 @@
+{
+  "basket_columns": [
+    "Mode Of Travel During Accident",
+    "Collision With",
+    "Time of Collision",
+    "Road Condition",
+    "Category of Road",
+    "Road Type",
+    "Approximate Speed",
+    "Road Signals Exist",
+    "Visiblity",
+    "Helmet Worn",
+    "Site of Injury No1",
+    "severity_label"
+  ],
+  "total_rows": 6178,
+  "unique_items": 97,
+  "thresholds": {
+    "min_support": 0.02,
+    "min_confidence": 0.5,
+    "min_lift": 1.2
+  },
+  "rules_after_thresholds_and_filters": 1417,
+  "stability_check": {
+    "n_splits": 5,
+    "stability_floor": 0.6,
+    "rules_meeting_stability_floor": 1166,
+    "mean_stability_score_all_candidates": 0.8151023288637967
+  },
+  "final_non_redundant_rules": 897,
+  "notes": [
+    "The one-hot basket file is built here from Preprocessed_Dataset.csv - the same shared cleaned file every other model in this project uses - not a separate, undocumented file.",
+    "severity_label is rebuilt here from the exact formula the severity model uses (further interventions OR transferred OR major procedure), not read from a separate file - so this notebook's definition of severe is guaranteed identical to the rest of the project's, and the fields that define the label are never themselves basket items (see Section 1).",
+    "A minimum lift threshold (1.2) is enforced - last year had none, so a rule could look confident purely because its consequent was already common in the data.",
+    "Rules are only kept if they replicate across at least 60% of 5 independent random data splits - a single-split check (used in an earlier version of this notebook) risked being lucky or unlucky by chance, the same fragility every predictive model in this project moved away from.",
+    "Redundant rules (a specific version of a more general rule, adding no real information) are pruned from the final list.",
+    "Missing/unknown values never become basket items at all, rather than being filtered out of results after the fact."
+  ]
+}

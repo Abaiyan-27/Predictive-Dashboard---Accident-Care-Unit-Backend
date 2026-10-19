@@ -38,16 +38,28 @@ class ForecastResponse(BaseModel):
     risk_thresholds: Optional[ForecastRiskThresholds] = None
 
 class AssociationRule(BaseModel):
-    antecedents: list[str]
-    consequents: list[str]
-    support: float
+    """One rule from Association_Rule_Mining.ipynb, in its plain-language form."""
+    rank: int                  # the notebook's order (by lift)
+    rule: str                  # "When ...: in N% of these accidents, ..."
+    interpretation: str
+    strength: Literal["very strong", "strong", "moderate", "mild"]
+    topic: str
+    accidents: int             # past accidents the whole pattern covers
     confidence: float
     lift: float
+    if_items: list[str]        # e.g. "Helmet Worn=no"
+    then_items: list[str]
 
 
 class AssociationRulesResponse(BaseModel):
     status: str
     total_rules: int
+    matched_rules: int
+    total_accidents: Optional[int] = None
     thresholds: dict
+    stability: dict
+    topics: dict[str, int]
+    strengths: dict[str, int]
+    disclaimer: str
     rules: list[AssociationRule]
     message: Optional[str] = None
